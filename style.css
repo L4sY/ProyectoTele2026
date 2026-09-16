@@ -1,0 +1,299 @@
+* { box-sizing: border-box; }
+
+.seccion { display: none; }
+.activa  { display: block; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  background: linear-gradient(135deg, #f4f6ff, #eef6ff);
+  color: #1f2937;
+  display: flex;
+  flex-direction: column;
+}
+
+h1 {
+  margin: 32px 0 12px;
+  text-align: center;
+  letter-spacing: .4px;
+}
+
+h2 { text-align: center; }
+
+h3 {
+  margin: 18px 0 8px;
+  color: #1f2937;
+}
+
+hr {
+  width: min(720px, 92%);
+  border: none;
+  height: 1px;
+  background: #d6d9e6;
+  margin: 0 auto 18px;
+}
+
+#login,
+#registro,
+#menuPrincipal,
+#reserva,
+#resenya {
+  width: min(960px, 96%);
+  margin: 0 auto 32px;
+  background: #fff;
+  border: 1px solid #e6e8f2;
+  border-radius: 12px;
+  padding: 18px 20px;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+}
+
+#login,
+#registro {
+  width: min(420px, 92%);
+}
+
+fieldset {
+  border: none;
+  padding: 0;
+  margin: 0 0 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+label {
+  color: #4f04d1;
+  font-weight: 600;
+}
+
+input, select, textarea {
+  border: 1px solid #cfd4e6;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 15px;
+  outline: none;
+  background: #fff;
+  width: 100%;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: #4f04d1;
+  box-shadow: 0 0 0 3px rgba(79, 4, 209, 0.15);
+}
+
+textarea {
+  resize: vertical;
+  min-height: 80px;
+  margin-top: 6px;
+}
+
+button {
+  width: 100%;
+  border: 0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 15px;
+  cursor: pointer;
+  margin-top: 10px;
+  background: #e5e7eb;
+  color: #1f2937;
+}
+
+button.primary {
+  background: #4f04d1;
+  color: #fff;
+}
+
+button.primary:hover { filter: brightness(0.95); }
+
+button.secondary {
+  background: #eef2ff;
+  color: #312e81;
+  border: 1px solid #c7d2fe;
+}
+
+button.secondary:hover { background: #e0e7ff; }
+
+button.secundary {
+  background: #fff1f2;
+  color: #9f1239;
+  border: 1px solid #fecdd3;
+}
+
+button.secundary:hover { background: #ffe4e6; }
+
+#botonEditarDatos {
+  width: auto;
+  padding: 9px 12px;
+  border: 1px solid #c7d2fe;
+  background: #eef2ff;
+  color: #312e81;
+  margin-top: 0;
+  margin-bottom: 14px;
+}
+
+input[readonly] {
+  background: #f3f4f6;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+#addReserva {
+  background: #4f04d1;
+  color: #fff;
+}
+
+#addReserva:hover { filter: brightness(0.95); }
+
+#salir {
+  background: #fff1f2;
+  color: #9f1239;
+  border: 1px solid #fecdd3;
+}
+
+#salir:hover { background: #ffe4e6; }
+
+
+.tabla-contenedor {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 10px;
+  border: 1px solid #e6e8f2;
+  margin-bottom: 16px;
+}
+
+table {
+  width: 100%;
+  min-width: 600px;
+  border-collapse: collapse;
+}
+
+thead {
+  background: #eef2ff;
+}
+
+th {
+  padding: 10px 12px;
+  text-align: center;
+  font-size: 13px;
+  color: #312e81;
+  font-weight: 600;
+  border-bottom: 2px solid #c7d2fe;
+  white-space: nowrap;
+}
+
+td {
+  padding: 9px 12px;
+  text-align: center;
+  border-bottom: 1px solid #eef0f7;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+tbody tr:hover {
+  background: #f8fafc;
+}
+
+tfoot td {
+  font-size: 13px;
+  color: #6b7280;
+  border-bottom: none;
+  border-top: 1px solid #e6e8f2;
+  text-align: center;
+  padding: 8px 10px;
+  background: #f9fafb;
+}
+
+
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.badge-pendiente  { background: #fff3cd; color: #856404; }
+.badge-en-uso     { background: #cff4fc; color: #055160; }
+.badge-disponible { background: #d1e7dd; color: #0a3622; }
+.badge-ocupado    { background: #f8d7da; color: #842029; }
+
+
+
+.td-acciones {
+  display: flex;
+  gap: 5px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn-accion {
+  border: none;
+  padding: 5px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  width: auto;
+  margin-top: 0;
+  transition: filter 0.15s;
+}
+
+.btn-accion:hover { filter: brightness(0.88); }
+
+.btn-iniciar   { background: #28a745; color: #fff; }
+.btn-finalizar { background: #fd7e14; color: #fff; }
+.btn-cancelar  { background: #dc3545; color: #fff; }
+.btn-reservar  { background: #4f04d1; color: #fff; }
+.btn-resenya   { background: #6f42c1; color: #fff; }
+
+
+
+#errorLogin,
+#errorRegistro {
+  color: #dc2626;
+  font-size: 14px;
+  margin: 6px 0;
+  min-height: 20px;
+}
+
+
+
+#textoBienvenida {
+  margin: 6px 0 14px;
+  color: #4b5563;
+  font-size: 15px;
+}
+
+#nSeriaRecurso {
+  font-weight: 600;
+  color: #4f04d1;
+  margin: 4px 0 14px;
+}
+
+.tabla-info {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 4px 0 6px;
+  font-style: italic;
+}
+
+
+footer {
+  margin-top: auto;
+  padding: 14px 0 18px;
+  text-align: center;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+footer hr { margin: 18px auto 10px; }
+
+#tablaAvisos {
+  overflow: hidden;
+}

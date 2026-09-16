@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="/cliente/gestor.png">
+  <link rel="stylesheet" href="estilo.css">
+  <title>Gestores</title>
+</head>
+
+<body>
+  
+    <h1>Mi aplicacion</h1>
+  <div id="login" class="seccion activa">
+    <h2>Acceso-Gestores</h2>
+    <hr>
+      <legend>Introduzca sus creedenciales</legend>
+      <fieldset>
+        <label for="userLogin">Usuario:</label>
+        <input type="text" id="userLogin" name="userLogin">
+      </fieldset>
+
+      <fieldset>
+        <label for="passLogin">Contraseña:</label>
+        <input type="password" id="passLogin" name="passLogin">
+      </fieldset>
+
+      <p id="errorLogin"></p>
+
+      <button onclick="entrar()" class="primary">Entrar</button>
+      <button onclick="cargarRegistro();cambiarSeccion('registro')" type="button" class="secondary">Registrarse</button>
+  </div>
+
+  <div id="registro" class="seccion">
+      <h2>Registro</h2>
+      <hr>
+          <legend>Introduzca sus datos</legend>
+          <fieldset>
+              <label for="nameRegistro">Nombre:</label>
+              <input type="text" id="nameRegistro" name="nameRegistro">
+          </fieldset>
+
+          <fieldset>
+              <label for="apellidosRegistro">Apellidos:</label>
+              <input type="text" id="apellidosRegistro" name="apellidosRegistro">
+          </fieldset>
+
+          <fieldset>
+              <label for="userRegistro">Nombre de usuario:</label>
+              <input type="text" name="userRegistro" id="userRegistro">
+          </fieldset>
+
+          <fieldset>
+              <label for="passRegistro">Contraseña:</label>
+              <input type="password" id="passRegistro" name="passRegistro">
+          </fieldset>
+      
+          <p id="errorRegistro"></p>
+
+      <button type="button" id="guardarRegistro" class="primary">Guardar</button>
+      <button type="button" id="cancelarRegistro" class="secundary">Cancelar</button>
+    </div>
+    <div id="menuPrincipal" class="seccion">
+
+      <div class="menu-layout">
+      <section class="menu-contenido">
+        <h2>Menu principal</h2>
+        <hr>
+        <p id="textoBienvenida"></p>
+        <button id="botonEditarDatos" onclick="cargarDatosEnRegistro();cambiarSeccion('registro');">Editar datos</button>
+        <h3>Busqueda de recursos</h3>
+        <hr>
+
+        <fieldset>
+          <label for="categoriaMenu">Categoria:</label>
+          <select name="categoriaMenu" id="categoriaMenu"></select>
+        </fieldset>
+
+        <fieldset>
+          <label for="modeloMenu">Modelo:</label>
+          <select name="modeloMenu" id="modeloMenu"></select>
+        </fieldset>
+
+        <fieldset>
+          <label for="ubicacionMenu">Ubicacion</label>
+          <select name="ubicacionMenu" id="ubicacionMenu"></select>
+        </fieldset>
+
+        <fieldset>
+          <label for="estadoMenu">Estado:</label>
+          <select name="estadoMenu" id="estadoMenu"></select>
+        </fieldset>
+
+          <button onclick="buscarRecurso()" id="buscar">Buscar</button>
+          <!--Esconder la tabla y todo recursos hasta buscar un recurso-->
+
+          <section id="infoRecursos">
+            <h3>Recursos</h3>
+            <hr>
+            <table id="tablaRecursos">
+              <thead id="cabezaTRecurso">
+                <th>N. Serie</th>
+                <th>Categoria</th>
+                <th>Modelo</th>
+                <th>Ubicacion</th>
+                <th>Estado</th>
+                <th></th>
+              </thead>
+              <tbody id="cuerpoTRecursos">
+
+              </tbody>
+              <tfoot id="pieTRecursos">
+                <td colspan="6" id="contadorRecursos"></td>
+              </tfoot>
+            </table>
+          </section>
+          <button id="addRecurso" onclick="cambiarSeccion('recurso')">Añadir Recurso</button>
+          <button id="salir" onclick="cambiarSeccion('login')">Salir</button>
+        </section>
+
+          <aside id="avisos" class="panel-avisos">
+            <table id="tablaAvisos">
+              <thead>
+                <th>Fecha</th>
+                <th>Usuario</th>
+                <th>Aviso</th>
+              </thead>
+              <tbody id="cuerpoTAvisos">
+              </tbody>
+              <tfoot></tfoot>
+            </table>
+          </aside>
+          </div>
+    </div>
+
+    <div id="recurso" class="seccion">
+      <h2>Recurso</h2>
+      <hr>
+      <h3>Datos recurso</h3>
+      <hr>
+        <fieldset>
+          <label for="categoriaRecurso">Categoria</label>
+          <select name="categoriaRecurso" id="categoriaRecurso"></select>
+        </fieldset>
+
+        <fieldset>
+          <label for="modeloRecurso">Modelo</label>
+          <select name="modeloRecurso" id="modeloRecurso"></select>
+        </fieldset>
+
+        <fieldset>
+          <label for="nSerieRecurso">Num. Serie</label>
+          <input type="text" name="nSerieRecurso" id="nSerieRecurso">
+        </fieldset>
+
+        <fieldset>
+          <label for="ubicacionRecurso">Ubicacion</label>
+          <select name="ubicacionRecurso" id="ubicacionRecurso"></select>
+        </fieldset>
+
+        <fieldset>
+          <label for="estadoRecurso">Estado</label>
+          <select name="estadoRecurso" id="estadoRecurso"></select>
+        </fieldset>
+
+      <button id="guardarRecurso">Guardar</button>
+
+      <h3>Reservas</h3>
+      <hr>
+      <table id="tablaReservas">
+        <thead id="cabezaTReservas">
+          <th>Sanitario</th>
+          <th>H. Estim</th>
+          <th>F. Peticion</th>
+          <th>F. Inicio</th>
+          <th>F. Fin</th>
+        </thead>
+        <tbody id="cuerpoTReservas">
+
+        </tbody>
+        <tfoot id="pieTReservas">
+          <td id="totalReservas" colspan="5"></td>
+        </tfoot>
+      </table>
+
+      <h3>Reseñas</h3>
+      <hr>
+      <table id="tablaResenas">
+        <thead id="cabezaTResenas">
+          <th>Fecha</th>
+          <th>Sanitario</th>
+          <th>Valoración</th>
+          <th>Comentario</th>
+          <th>Informacion</th>
+        </thead>
+        <tbody id="cuerpoTResenas">
+
+        </tbody>
+        <tfoot id="pieTResenas">
+          <td colspan="5"></td>
+        </tfoot>
+      </table>
+      <button onclick="cambiarSeccion('menuPrincipal');limpiarFormularioRecurso()">Volver al listado</button>
+    </div>
+  <footer>
+    <hr>
+    <p>Marcos Muñoz Gamez - SD 2025/2026</p>
+  </footer>
+
+  <script src="rest.js"></script>
+  <script src="mainPrueba.js"></script>
+  <script src="../mainWS.js"></script>
+</body>
+</html>

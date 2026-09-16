@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="../Misc/Sanitario.png">
+  <link rel="stylesheet" href="../style.css">
+  <title>Sanitarios</title>
+</head>
+
+<body>
+
+  <h1>Mi aplicacion</h1>
+
+  <div id="login" class="seccion activa">
+    <h2>Acceso-Sanitarios</h2>
+    <hr>
+    <legend>Introduzca sus credenciales</legend>
+    <fieldset>
+      <label for="userLogin">Usuario:</label>
+      <input type="text" id="userLogin" name="userLogin">
+    </fieldset>
+    <fieldset>
+      <label for="passLogin">Contraseña:</label>
+      <input type="password" id="passLogin" name="passLogin">
+    </fieldset>
+    <p id="errorLogin"></p>
+    <button onclick="login()" class="primary">Entrar</button>
+    <button onclick="cargarRegistro(); cambiarSeccion('registro')" type="button" class="secondary">Registrarse</button>
+  </div>
+
+  <div id="registro" class="seccion">
+    <h2>Registro</h2>
+    <hr>
+    <legend>Introduzca sus datos</legend>
+    <fieldset>
+      <label for="nameRegistro">Nombre:</label>
+      <input type="text" id="nameRegistro" name="nameRegistro">
+    </fieldset>
+    <fieldset>
+      <label for="apellidosRegistro">Apellidos:</label>
+      <input type="text" id="apellidosRegistro" name="apellidosRegistro">
+    </fieldset>
+    <fieldset>
+      <label for="userRegistro">Nombre de usuario:</label>
+      <input type="text" name="userRegistro" id="userRegistro">
+    </fieldset>
+    <fieldset>
+      <label for="passRegistro">Contraseña:</label>
+      <input type="password" id="passRegistro" name="passRegistro">
+    </fieldset>
+    <p id="errorRegistro"></p>
+    <button type="button" onclick="guardarRegistro()" class="primary">Guardar</button>
+    <button type="button" onclick="cancelarRegistro()" class="secondary">Cancelar</button>
+  </div>
+
+  <div id="menuPrincipal" class="seccion">
+    <h2>Menu principal</h2>
+    <hr>
+    <p id="textoBienvenida"></p>
+    <button onclick="editarDatos()">Editar datos</button>
+
+    <h3>Reservas pendientes</h3>
+    <hr>
+    <div class="tabla-contenedor">
+      <table id="tablaReservasP">
+        <thead>
+          <tr>
+            <th>Categoría</th>
+            <th>Modelo</th>
+            <th>N. Serie</th>
+            <th>Ubicación</th>
+            <th>F. Petición</th>
+            <th>H. Restantes</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="cuerpoTReservasP"></tbody>
+        <tfoot>
+          <tr>
+            <td id="contadorTReservasP" colspan="8"></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <h3>Reservas realizadas</h3>
+    <hr>
+    <div class="tabla-contenedor">
+      <table id="tablaReservasR">
+        <thead>
+          <tr>
+            <th>Categoría</th>
+            <th>Modelo</th>
+            <th>N. Serie</th>
+            <th>H. Estimadas</th>
+            <th>F. Inicio</th>
+            <th>F. Fin</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="cuerpoTReservasR"></tbody>
+        <tfoot>
+          <tr>
+            <td id="contadorRecursos" colspan="7"></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <button onclick="cargarFiltrosReserva(); cambiarSeccion('reserva')">Nueva reserva</button>
+    <button onclick="salir()">Salir</button>
+
+  <h3>Avisos</h3>
+  <aside id="avisos" class="tabla-contenedor">
+      <table id="tablaAvisos">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Usuario</th>
+            <th>Aviso</th>
+          </tr>
+          </thead>
+        <tbody id="cuerpoTAvisos">
+        </tbody>
+        <tfoot></tfoot>
+      </table>
+    </aside>
+  </div>
+
+  <div id="reserva" class="seccion">
+    <h2>Nueva Reserva</h2>
+    <hr>
+    <fieldset>
+      <label for="categoriaRecurso">Categoría</label>
+      <select name="categoriaRecurso" id="categoriaRecurso" onchange="filtrarModelos()"></select>
+    </fieldset>
+    <fieldset>
+      <label for="modeloRecurso">Modelo</label>
+      <select name="modeloRecurso" id="modeloRecurso"></select>
+    </fieldset>
+    <fieldset>
+      <label for="tiempoRecurso">T. est. uso (horas)</label>
+      <input name="tiempoRecurso" id="tiempoRecurso" type="number" min="1">
+    </fieldset>
+
+    <button onclick="buscarRecursos()">Buscar</button>
+
+    <h3>Recursos disponibles</h3>
+    <hr>
+    <p class="tabla-info" id="totalRecursos"></p>
+    <div class="tabla-contenedor">
+      <table id="tablaRecursos">
+        <thead>
+          <tr>
+            <th>N. Serie</th>
+            <th>Ubicación</th>
+            <th>H. Espera</th>
+            <th>Estado</th>
+            <th>Valoración</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody id="cuerpoTRecursos"></tbody>
+      </table>
+    </div>
+
+    <button onclick="cambiarSeccion('menuPrincipal')">Cancelar</button>
+  </div>
+
+  <div id="resenya" class="seccion">
+    <h2>Reseña nueva</h2>
+    <hr>
+    <label>Recurso (N. Serie)</label>
+    <p id="nSeriaRecurso"></p>
+    <label for="valoracionResenya">Valoración</label>
+    <select name="valoracionResenya" id="valoracionResenya"></select>
+    <label for="textoResenya">Comentario</label>
+    <textarea name="textoResenya" id="textoResenya"></textarea>
+    <button onclick="guardarResenya()">Guardar</button>
+    <button onclick="cancelarResenya()">Cancelar</button>
+  </div>
+
+  <footer>
+    <hr>
+    <p>Marcos Muñoz Gamez - SD 2025/2026</p>
+  </footer>
+
+  <script src="rest.js"></script>
+  <script src="rpc.js"></script>
+  <script src="main.js"></script>
+  <script src="../mainWS.js"></script>
+</body>
+</html>

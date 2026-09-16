@@ -1,0 +1,362 @@
+/* ====== APARTADO RECURSOS ====== */
+#infoRecursos{
+  margin-top: 14px;
+  padding: 12px;
+  border: 1px solid #e6e8f2;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+#infoRecursos h3{
+  margin: 0 0 8px;
+  text-align: left;
+}
+
+* { box-sizing: border-box; }
+
+.seccion{ display: none; }
+.activa{ display: block; } /* display controla si ocupa layout o no [web:89] */
+
+body{
+  margin: 0;
+  min-height: 100vh;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  background: linear-gradient(135deg, #f4f6ff, #eef6ff);
+  color: #1f2937;
+  display: flex;
+  flex-direction: column;
+}
+
+h1{
+  margin: 32px 0 12px;
+  text-align: center;
+  letter-spacing: .4px;
+}
+
+h2{ text-align: center; }
+
+hr{
+  width: min(720px, 92%);
+  border: none;
+  height: 1px;
+  background: #d6d9e6;
+  margin: 0 auto 18px;
+}
+
+/* Tarjeta (login/registro/menu) */
+#login,
+#registro,
+#menuPrincipal{
+  width: min(720px, 92%);
+  margin: 0 auto;
+  background: #fff;
+  border: 1px solid #e6e8f2;
+  border-radius: 12px;
+  padding: 18px 16px;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+}
+
+#login, #registro{
+  width: min(420px, 92%);
+}
+
+/* Formularios */
+fieldset{
+  border: none;
+  padding: 0;
+  margin: 0 0 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+label{
+  color: #4f04d1;
+  font-weight: 600;
+}
+
+input, select{
+  border: 1px solid #cfd4e6;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 15px;
+  outline: none;
+  background: #fff;
+}
+
+input:focus, select:focus{
+  border-color: #4f04d1;
+  box-shadow: 0 0 0 3px rgba(79, 4, 209, 0.15);
+}
+
+select{
+  width: 100%;
+}
+
+/* Botones */
+button{
+  width: 100%;
+  border: 0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 15px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+button.primary{
+  background: #4f04d1;
+  color: #fff;
+}
+
+button.primary:hover{ filter: brightness(0.95); }
+
+button.secondary{
+  background: #eef2ff;
+  color: #312e81;
+  border: 1px solid #c7d2fe;
+}
+
+button.secondary:hover{ background: #e0e7ff; }
+
+/* Tu HTML tiene "secundary" (mal escrito). Lo estilamos para que funcione */
+button.secundary{
+  background: #fff1f2;
+  color: #9f1239;
+  border: 1px solid #fecdd3;
+}
+
+button.secundary:hover{ background: #ffe4e6; }
+
+/* ====== MENU PRINCIPAL ====== */
+#menuPrincipal p{
+  margin: 6px 0 14px;
+  color: #4b5563;
+}
+
+#botonEditarDatos{
+  width: auto;
+  padding: 9px 12px;
+  border: 1px solid #c7d2fe;
+  background: #eef2ff;
+  color: #312e81;
+  margin-top: 0;
+}
+
+#buscar{
+  background: #111827;
+  color: #fff;
+}
+
+#buscar:hover{ filter: brightness(0.95); }
+
+/* Filtros en grid a partir de tablet */
+@media (min-width: 720px){
+  #menuPrincipal label,
+  #menuPrincipal select{
+    display: inline-block;
+    width: calc(50% - 10px);
+    vertical-align: top;
+  }
+
+  #menuPrincipal #buscar{
+    width: auto;
+    padding: 10px 14px;
+  }
+}
+/* ====== RECURSO (pantalla de detalle/alta) ====== */
+#recurso{
+  width: min(720px, 92%);
+  margin: 0 auto;
+  background: #fff;
+  border: 1px solid #e6e8f2;
+  border-radius: 12px;
+  padding: 18px 16px;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+}
+
+/* Ajustes de textos dentro de recurso */
+#recurso h3{
+  margin: 18px 0 8px;
+}
+
+/* Botones dentro de recurso: que no ocupen todo si quieres estilo “acción” */
+#recurso button{
+  width: 100%;
+}
+
+/* En pantallas algo más grandes, pon los campos en 2 columnas */
+@media (min-width: 720px){
+  /* Contenedor “tipo grid” usando el fieldset existente (misma idea que el resto) */
+  #recurso fieldset{
+    flex-direction: column;
+  }
+
+  /* Si quieres 2 columnas en selects/inputs del recurso */
+  #recurso label,
+  #recurso select,
+  #recurso input{
+    width: 100%;
+  }
+
+  /* Botón guardar más compacto en desktop */
+  #recurso #guardarRecurso{
+    width: auto;
+    padding: 10px 14px;
+  }
+}
+
+/* ====== TABLAS dentro de Recurso ====== */
+#recurso table{
+  width: 100%;
+  margin-top: 10px;
+  border-collapse: collapse; /* bordes unidos en tablas [web:207] */
+  border: 1px solid #e6e8f2;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+#recurso thead{
+  background: #eef2ff;
+}
+
+#recurso th,
+#recurso td{
+  padding: 10px 10px;
+  text-align: center;
+  border-bottom: 1px solid #eef0f7;
+  font-size: 14px;
+}
+
+#recurso tbody tr:hover{
+  background: #f8fafc;
+}
+
+#recurso tfoot td{
+  font-size: 13px;
+  border-bottom: none;
+}
+
+/* Opcional: en móvil, si alguna tabla se sale, permite scroll horizontal
+   (mejor envolver la tabla en un div, pero esto ayuda) */
+#recurso{
+  overflow-x: auto;
+}
+
+
+/* ====== TABLA ====== */
+#tablaRecursos{
+  width: 100%;
+  margin-top: 10px;
+  border-collapse: collapse; /* une bordes de celdas [web:74] */
+  border: 1px solid #e6e8f2;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+#tablaRecursos thead{
+  background: #eef2ff;
+}
+
+#tablaRecursos th,
+#tablaRecursos td{
+  padding: 10px 10px;
+  text-align: center;
+  border-bottom: 1px solid #eef0f7;
+  font-size: 14px;
+}
+
+#tablaRecursos tbody tr:hover{
+  background: #f8fafc;
+}
+
+#tablaRecursos tfoot td{
+  color: black;
+  font-size: 13px;
+  border-bottom: none;
+  text-align: center;
+}
+
+/* Footer */
+footer{
+  margin-top: auto;
+  padding: 14px 0 18px;
+  text-align: center;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+footer hr{ margin: 18px auto 10px; }
+
+.btn-editar {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  margin: 2px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.btn-eliminar {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  margin: 2px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.acciones button:hover {
+  opacity: 0.8;
+}
+
+input[readonly]{
+    background-color: #e0e0e0;
+    color: #666;
+    cursor: not-allowed;
+}
+
+/* ====== ESTILO PARA TU TABLA DE AVISOS EXISTENTE ====== */
+/* Aplicamos el formato de "tarjeta" que usas en #infoRecursos */
+.panel-avisos {
+  margin-top: 14px;
+  padding: 12px;
+  border: 1px solid #e6e8f2;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+/* Aplicamos el formato de #tablaRecursos a tu tabla de avisos */ 
+.panel-avisos table {
+  width: 100%;
+  margin-top: 10px;
+  border-collapse: collapse;
+  border: 1px solid #e6e8f2;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.panel-avisos thead {
+  background: #eef2ff;
+}
+
+.panel-avisos th,
+.panel-avisos td {
+  padding: 10px 10px;
+  text-align: center;
+  border-bottom: 1px solid #eef0f7;
+  font-size: 14px;
+}
+
+.panel-avisos tbody tr:hover {
+  background: #f8fafc;
+}
+
+/* Colores de los avisos (Basado en la operación del mensaje) */
+.nuevaResenya { color: #059669 !important; font-weight: 600; } /* Verde */
+.nuevoRecurso { color: #2563eb !important; font-weight: 600; } /* Azul */
+.avisoReserva { color: #dc2626 !important; font-weight: 600; } /* Rojo */

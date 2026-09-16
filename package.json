@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "figlet": "^1.10.0",
+    "websocket": "^1.0.35",
+    "ws": "^8.20.0"
+  }
+}
