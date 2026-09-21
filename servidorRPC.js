@@ -1,6 +1,10 @@
 var rpc = require("./rpc.js");
 let ws = require("./servidorWS.js")
 var datosServidor = require("./datos.js")
+rpc.debug = true
+
+var servidor = rpc.server();
+var app = servidor.createApp("gestion_pacientes");
 
 var sanitarios  = datosServidor.san
 var gestores    = datosServidor.gest
@@ -110,9 +114,6 @@ function obtenerRecursos(idModelo, callback) {
     });
     return callback(arrayRecursos);
 }
-
-var servidor = rpc.server();
-var app = servidor.createApp("gestion_pacientes");
 
 function tiempoPendiente(idRecurso, callback) {
     let tiempoEspera = 0;

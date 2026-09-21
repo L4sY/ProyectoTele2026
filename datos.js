@@ -36,7 +36,7 @@ var modelos = [
   {"id":2, "nombre":"Estetoscopio Lite", "categoria":2, "horas_maximas":8},
   {"id":3, "nombre":"Silla Ruedas Standard", "categoria":3, "horas_maximas":48},
   {"id":4, "nombre":"Monitor cardíaco MC-2000", "categoria":4, "horas_maximas":72},
-  {"id":5, "nombre":"Monitor cardíaco Portable", "categoria":4, "horas_maximas":24},
+  {"id":5, "nombre":"Monitor cardíaco Portatil", "categoria":4, "horas_maximas":24},
   {"id":6, "nombre":"Electrocirujano ES-500", "categoria":5, "horas_maximas":12},
   {"id":7, "nombre":"Infusor IV-300", "categoria":6, "horas_maximas":168},
   {"id":8, "nombre":"Ventilador V-900", "categoria":7, "horas_maximas":24}
