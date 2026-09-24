@@ -1,23 +1,14 @@
 var rpc = require("./rpc.js");
 let ws = require("./servidorWS.js")
 var datosServidor = require("./datos.js")
+var conexionBD = require("./conexion_mysql.js");
+const conexion = require("./conexion_mysql.js");
+
 rpc.debug = true
 
 var servidor = rpc.server();
 var app = servidor.createApp("gestion_pacientes");
 
-var sanitarios  = datosServidor.san
-var gestores    = datosServidor.gest
-var ubicaciones = datosServidor.ubic
-var categoria   = datosServidor.cate
-var modelos     = datosServidor.mod
-var recursos    = datosServidor.rec
-var reservas    = datosServidor.reservas
-var reseynas    = datosServidor.resenyas
-
-var siguienteIDSanitario = 5;
-var siguienteIDResenya   = 4;
-var siguienteIDReserva   = 4;
 let idUsuario = null;
 
 console.log("Servidor iniciado correctamente");
@@ -34,202 +25,307 @@ function fechaLocal() {
 }
 
 function obtenerCategorias(callback) {
-    return callback(categoria);
+    conexionBD.query("SELECT * FROM categorias", function (error, datos) {
+        if (error) {
+            console.log("Error obtenerCategorias:", error);
+            return callback(null);
+        }
+        return callback(datos);
+    });
 }
-
+ 
 function obtenerModelos(callback) {
-    return callback(modelos);
+    conexionBD.query("SELECT * FROM modelos", function (error, datos) {
+        if (error) {
+            console.log("Error obtenerModelos:", error);
+            return callback(null);
+        }
+        return callback(datos);
+    });
 }
-
+ 
 function obtenerUbicaciones(callback) {
-    return callback(ubicaciones);
+    conexionBD.query("SELECT * FROM ubicaciones", function (error, datos) {
+        if (error) {
+            console.log("Error obtenerUbicaciones:", error);
+            return callback(null);
+        }
+        return callback(datos);
+    });
 }
 
 function loginSanitario(usuario, password, callback) {
-    let indiceLogin = sanitarios.findIndex(function (sanitario) {
-        return usuario == sanitario.usuario;
-    });
 
-    if (indiceLogin == -1 || sanitarios[indiceLogin].password != password) {
-        return callback(null);
-    } else {
-        return callback(sanitarios[indiceLogin].id);
-    }
+    conexionBD.query("SELECT id FROM sanitarios WHERE usuario = ? AND password = ?",[usuario, password],function(error,datos){
+        if (error){
+            console.log("Error en el login:"+error)
+            return callback(null);
+        } else if (datos.length == 0){
+            console.log("Sanitario no encontrado")
+            return callback(null) 
+        } else {
+            return callback(datos[0].id)
+        }
+    })
 }
 
 function crearSanitario(datosSanitario, callback) {
     var { nombre, apellidos, usuario, password } = datosSanitario;
-    var repetido = sanitarios.some(function (sanitario) {
-        return sanitario.usuario == usuario;
-    });
-    if (!nombre || !apellidos || !usuario || !password || repetido) {
-        return callback(null);
-    } else {
-        var sanitarioNuevo = {
-            id: siguienteIDSanitario,
-            nombre,
-            apellidos,
-            usuario,
-            password
-        };
-        sanitarios.push(sanitarioNuevo);
-        siguienteIDSanitario++;
-        return callback(sanitarioNuevo.id);        
-    }
+    
+    //Comprueba que los campos no esten vacios
+    if (!nombre || !apellidos || !usuario || !password) {
+            return callback(null);
+        }
+    
+        conexionBD.query("SELECT id FROM sanitarios WHERE usuario = ?",
+            [usuario],
+            function (error, datos) {
+                if (error) {
+                    console.log("Error crearSanitario (comprobación):", error);
+                    return callback(null);
+                }
+                if (datos.length > 0) {
+                    return callback(null); // usuario repetido
+                }
+        })
+            
+    //Añade el saniario a la base de datos
+    conexionBD.query("INSERT INTO sanitarios (nombre, apellidos, usuario, password) VALUES (?, ?, ?, ?)",
+        [nombre, apellidos, usuario, password],
+        function(error,datos){
+        if (error){
+            console.log("Error al crear sanitario "+error)
+            return callback(null)
+        } else {
+            return callback(datos.insertId)
+        }
+    })
 }
 
 function actualizarSanitario(idSanitario, datosSanitario, callback) {
+
+
     var { nombre, apellidos} = datosSanitario;
 
     if (!nombre || !apellidos) {
         return callback(null);
     }
 
-    var indice = sanitarios.findIndex(function (s) {
-        return s.id == idSanitario;
-    });
+    conexionBD("UPDATE sanitarios SET (nombre, apellidos) VALUES (?,?) WHERE id = ?",
+        [nombre,apellidos,idSanitario],
+        function(error,datos){
+            if (error){
+                console.log("Ha ocurrido un error al actualizar el sanitario:", error);
+                return callback(null)
+            }
+            //Se hace affectedRows porque Update devuelve un objeto con atributos
+            // affectedRows, changedRows, insertId, warningStatus
+            if(datos.affectedRows == 0){
+                console.log("No se ha encontrado al sanitario")
+                return callback (null)
+            }
 
-    if (indice == -1) return callback(null);
-
-    sanitarios[indice].nombre    = nombre;
-    sanitarios[indice].apellidos = apellidos;
-
-    return callback(sanitarios[indice]);
+            conexionBD("SELECT (?,?) FROM sanitarios WHERE id = ?",
+                [nombre,apellidos,idSanitario],
+                function(error,datos){
+                    if (error || datos.length == 0){
+                        console.log("Error mostrando los datos del sanitario", error)
+                        return callback(null);
+                    }
+                    return callback(datos[0]);
+            })
+    })
 }
 
 function obtenerSanitario(idSanitario, callback) {
-    let sanitario = sanitarios.find(function (sanitarioBuscado) {
-        return idSanitario == sanitarioBuscado.id;
-    });
-
-    if (!sanitario) return callback(null);
-
-    var { password, ...sanitarioSinPassword } = sanitario; 
-    return callback(sanitarioSinPassword);
+    conexionBD.query("SELECT id, nombre, apellidos FROM sanitarios WHERE id = ?",
+        [idSanitario],
+        function(error,datos){
+        if (error){
+            callback(null);
+        } else {
+            if (datos.length == 0) {
+                callback(null);
+            } else {
+                callback(datos[0])
+            }
+        }
+    })
 }
 
 function obtenerRecursos(idModelo, callback) {
-    let arrayRecursos = recursos.filter(function (recurso) {
-        return idModelo == recurso.modelo && recurso.estado === 0; 
-    });
-    return callback(arrayRecursos);
+    conexionBD.query("SELECT * FROM recursos WHERE modelo = ? AND estado = 0",
+        [idModelo],
+        function (error, datos) {
+            if (error) {
+                console.log("Error obtenerRecursos:", error);
+                return callback(null);
+            }
+            return callback(datos);
+        }
+    );
 }
 
 function tiempoPendiente(idRecurso, callback) {
-    let tiempoEspera = 0;
-
-    let cola = reservas.filter(function (r) {
-        return r.recurso == idRecurso && !r.fecha_fin;
-    });
-
-    cola.forEach(function (r) {
-        if (r.fecha_inicio) {
-            tiempoEspera += Number(r.horas_estimadas);
+    conexionBD.query("SELECT COALESCE(SUM(horas_estimadas), 0) AS tiempoEspera FROM reservas " +
+        "WHERE recurso = ? AND fecha_fin IS NULL AND fecha_inicio IS NOT NULL",
+        [idRecurso],
+        function (error, datos) {
+            if (error) {
+                console.log("Error tiempoPendiente:", error);
+                return callback(null);
+            }
+            return callback(Number(datos[0].tiempoEspera));
         }
-    });
-
-    return callback(tiempoEspera);
+    );
 }
 
 function obtenerReservas(idSanitario, callback) {
-    let reservasSanitario = reservas.filter(function (r) {
-        return r.sanitario == idSanitario;
-    });
-    return callback(reservasSanitario);
+    conexionBD.query("SELECT * FROM reservas WHERE sanitario = ?",
+        [idSanitario],
+        function (error, datos) {
+            if (error) {
+                console.log("Error obtenerReservas:", error);
+                return callback(null);
+            }
+            return callback(datos);
+        }
+    );
 }
 
 function obtenerResenyas(idRecurso, callback) {
-    let resenyasRecurso = reseynas.filter(function (r) {
-        return r.recurso == idRecurso;
-    });
-    return callback(resenyasRecurso);
+    conexionBD.query("SELECT * FROM resenyas WHERE recurso = ?",
+        [idRecurso],
+        function (error, datos) {
+            if (error) {
+                console.log("Error obtenerResenyas:", error);
+                return callback(null);
+            }
+            return callback(datos);
+        }
+    );
 }
 
 function crearResenya(idRecurso, idSanitario, valoracion, descripcion, callback) {
-    let nuevaResenya = {
-        id:          siguienteIDResenya,
-        recurso:     idRecurso,
-        sanitario:   idSanitario,
-        fecha:       fechaLocal(),           
-        valor:       valoracion,
-        descripcion: descripcion
-    };
-    reseynas.push(nuevaResenya);
-    siguienteIDResenya++;
-    ws.notificarNuevaResenya(idRecurso, valoracion, idSanitario, descripcion) //IMPORTAR METODO
-    return callback(nuevaResenya.id);
+    var fecha = fechaLocal();
+ 
+    conexionBD.query(
+        "INSERT INTO resenyas (recurso, sanitario, fecha, valor, descripcion) VALUES (?, ?, ?, ?, ?)",
+        [idRecurso, idSanitario, fecha, valoracion, descripcion],
+        function (error, resultado) {
+            if (error) {
+                console.log("Error crearResenya:", error);
+                return callback(null);
+            }
+            ws.notificarNuevaResenya(idRecurso, valoracion, idSanitario, descripcion);
+            return callback(resultado.insertId);
+        }
+    );
 }
-
+ 
 function reservarRecurso(idRecurso, idSanitario, horasEstimadas, callback) {
-    
-    if (!horasEstimadas){
-        return callback(null)
+    if (!horasEstimadas) {
+        return callback(null);
     }
-    let nuevaReserva = {
-        id:              siguienteIDReserva,
-        recurso:         idRecurso,
-        sanitario:       idSanitario,
-        horas_estimadas: horasEstimadas,
-        fecha_peticion:  fechaLocal(),          
-        fecha_inicio:    null,
-        fecha_fin:       null
-    };
-    reservas.push(nuevaReserva);
-    siguienteIDReserva++;
-    return callback(nuevaReserva.id);
+ 
+    var fechaPeticion = fechaLocal();
+ 
+    conexionBD.query("INSERT INTO reservas (recurso, sanitario, horas_estimadas, fecha_peticion, fecha_inicio, fecha_fin) " +
+        "VALUES (?, ?, ?, ?, NULL, NULL)",
+        [idRecurso, idSanitario, horasEstimadas, fechaPeticion],
+        function (error, resultado) {
+            if (error) {
+                console.log("Error reservarRecurso:", error);
+                return callback(null);
+            }
+            return callback(resultado.insertId);
+        }
+    );
 }
-
+ 
 function cancelarReserva(idReserva, callback) {
-    let indexReserva = reservas.findIndex(function (r) {
-        return idReserva == r.id;
-    });
-
-    if (indexReserva != -1) {
-        reservas.splice(indexReserva, 1);
-        return callback(true);
-    } else {
-        return callback(false);
-    }
+    conexionBD.query("DELETE FROM reservas WHERE id = ?",
+        [idReserva],
+        function (error, resultado) {
+            if (error) {
+                console.log("Error cancelarReserva:", error);
+                return callback(false);
+            }
+            return callback(resultado.affectedRows > 0);
+        }
+    );
 }
-
+ 
 function iniciarReserva(idReserva, callback) {
-    let reservaBuscada = reservas.findIndex(function (r) {
-        return idReserva == r.id;
-    });
-
-    let reserva = reservas.find(function(r){ return r.id == idReserva})
-    
-
-    if (reservaBuscada == -1) {                             
-        return callback(false);
-    } else {
-        reservas[reservaBuscada].fecha_inicio = fechaLocal(); 
-        ws.notificarCambioReserva("inicio", idReserva, reserva.sanitario)
-        return callback(true);
-    }
+    // Necesitamos el sanitario de la reserva para la notificación WS,
+    // así que primero consultamos y luego actualizamos.
+    conexionBD.query("SELECT sanitario FROM reservas WHERE id = ?",
+        [idReserva],
+        function (error, datos) {
+            if (error || datos.length == 0) {
+                if (error) console.log("Error iniciarReserva (select):", error);
+                return callback(false);
+            }
+ 
+            var idSanitarioReserva = datos[0].sanitario;
+            var fechaInicio = fechaLocal();
+ 
+            conexionBD.query("UPDATE reservas SET fecha_inicio = ? WHERE id = ?",
+                [fechaInicio, idReserva],
+                function (error, resultado) {
+                    if (error || resultado.affectedRows == 0) {
+                        if (error) console.log("Error iniciarReserva (update):", error);
+                        return callback(false);
+                    }
+                    ws.notificarCambioReserva("inicio", idReserva, idSanitarioReserva);
+                    return callback(true);
+                }
+            );
+        }
+    );
 }
-
+ 
 function finalizarReserva(idReserva, callback) {
-    let reservaBuscada = reservas.findIndex(function (r) {
-        return idReserva == r.id;
-    });
-
-    let reserva = reservas[reservaBuscada];
-
-    if (reservaBuscada == -1) {                             
-        return callback(false);
-    } else {
-        reservas[reservaBuscada].fecha_fin = fechaLocal(); 
-        ws.notificarCambioReserva("fin",reserva.id, reserva.sanitario)   
-        return callback(true);
-    }
+    conexionBD.query("SELECT sanitario FROM reservas WHERE id = ?",
+        [idReserva],
+        function (error, datos) {
+            if (error || datos.length == 0) {
+                if (error) console.log("Error finalizarReserva (select):", error);
+                return callback(false);
+            }
+ 
+            var idSanitarioReserva = datos[0].sanitario;
+            var fechaFin = fechaLocal();
+ 
+            conexionBD.query("UPDATE reservas SET fecha_fin = ? WHERE id = ?",
+                [fechaFin, idReserva],
+                function (error, resultado) {
+                    if (error || resultado.affectedRows == 0) {
+                        if (error) console.log("Error finalizarReserva (update):", error);
+                        return callback(false);
+                    }
+                    ws.notificarCambioReserva("fin", idReserva, idSanitarioReserva);
+                    return callback(true);
+                }
+            );
+        }
+    );
 }
-
+ 
 function obtenerRecurso(idRecurso, callback) {
-    let recurso = recursos.find(function (r) {
-        return idRecurso == r.id;
-    });
-    return callback(recurso);
+    conexionBD.query("SELECT * FROM recursos WHERE id = ?",
+        [idRecurso],
+        function (error, datos) {
+            if (error) {
+                console.log("Error obtenerRecurso:", error);
+                return callback(null);
+            }
+            if (datos.length == 0) {
+                return callback(null);
+            }
+            return callback(datos[0]);
+        }
+    );
 }
 
 app.registerAsync(obtenerCategorias);
