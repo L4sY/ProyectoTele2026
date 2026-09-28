@@ -114,53 +114,40 @@ function cargarDatosEnRegistro() {
 
 
 //revisar si toca
-botonGuardarRegistro.addEventListener('click',function(){
-    //Guardar datos en el database y vaciar formulario
-    var nombre = document.getElementById("nameRegistro");
-    var apellidos = document.getElementById("apellidosRegistro");
-    var usuario = document.getElementById("userRegistro");
-    var contraseña = document.getElementById("passRegistro");
+botonGuardarRegistro.addEventListener('click', function () {
+  var nombre = document.getElementById("nameRegistro").value.trim();
+  var apellidos = document.getElementById("apellidosRegistro").value.trim();
+  var usuario = document.getElementById("userRegistro").value.trim();
+  var contraseña = document.getElementById("passRegistro").value;
 
-    var usuarioActualizado = {
-        nombre: nombre.value,
-        apellidos: apellidos.value,
-        usuario: usuario.value,
-        password: contraseña.value
+  if (ultimaSeccion === 'menuPrincipal') {
+    // EDITAR: usuario y contraseña son de solo lectura, no se envían
+    if (nombre === "" || apellidos === "") {
+      if (!confirm('Hay campos en blanco, ¿seguro que quieres continuar?')) return;
     }
-    if (ultimaSeccion=='menuPrincipal'){
-      if (!nombre && !apellidos && !usuario && !password){
-        var continuar = confirm('¿Hay campos en blanco, seguro que quieres continuar?')
-      }
-      if (confimar){
-
-    rest.put("/api/gestores/"+idGestor, usuarioActualizado, function(estado, respuesta){
-
-    if (200==estado){   
-        alert(respuesta)
-
-        nombre.value = "";
-        apellidos.value = "";
-        usuario.value = "";
-        contraseña.value = "";
-
-        cargarBienvenida();
+    rest.put("/api/gestores/" + idGestor, { nombre: nombre, apellidos: apellidos }, function (estado, respuesta) {
+      if (estado === 200) {
         alert(respuesta);
+        cargarBienvenida();
         cambiarSeccion('menuPrincipal');
+      } else {
+        alert("Error " + estado + " " + respuesta);
+      }
+    });
+  } else {
+    // REGISTRAR
+    if (nombre === "" || apellidos === "" || usuario === "" || contraseña === "") {
+      return alert("Rellena todos los campos.");
     }
-    else {
-      alert(respuesta)
-    }})}
-    else{
-      
-  }}
-    else{
-      rest.post("api/gestores/",usuarioActualizado,function(estado, respuesta){
-        if (estado==201){
-          alert(respuesta);
-          cambiarSeccion('login');
-        }
-      })
-    }
+    rest.post("/api/gestores", { nombre: nombre, apellidos: apellidos, usuario: usuario, password: contraseña }, function (estado, respuesta) {
+      if (estado === 201) {
+        alert(respuesta);
+        cambiarSeccion('login');
+      } else {
+        alert("Error " + estado + " " + respuesta);
+      }
+    });
+  }
 });
 
 
@@ -440,32 +427,32 @@ function pintarTablaReservas(reservas) {
     
     // Columna 2: Horas estimadas
     var tdHoras = document.createElement("td");
-    tdHoras.textContent = reserva.horasestimadas || 0;
+    tdHoras.textContent = reserva.horas_estimadas || 0;
     
     // Columna 3: Fecha petición
-    var tdFechaPeticion = document.createElement("td");
-    tdFechaPeticion.textContent = reserva.fechapeticion 
-      ? new Date(reserva.fechapeticion).toLocaleString('es-ES') 
+    var tdFecha_Peticion = document.createElement("td");
+    tdFecha_Peticion.textContent = reserva.fecha_peticion 
+      ? new Date(reserva.fecha_peticion).toLocaleString('es-ES') 
       : '';
     
     // Columna 4: Fecha inicio
-    var tdFechaInicio = document.createElement("td");
-    tdFechaInicio.textContent = reserva.fechainicio 
-      ? new Date(reserva.fechainicio).toLocaleString('es-ES') 
+    var tdFecha_Inicio = document.createElement("td");
+    tdFecha_Inicio.textContent = reserva.fecha_inicio 
+      ? new Date(reserva.fecha_inicio).toLocaleString('es-ES') 
       : 'No iniciada';
     
     // Columna 5: Fecha fin
-    var tdFechaFin = document.createElement("td");
-    tdFechaFin.textContent = reserva.fechafin 
-      ? new Date(reserva.fechafin).toLocaleString('es-ES') 
+    var tdFecha_Fin = document.createElement("td");
+    tdFecha_Fin.textContent = reserva.fecha_fin 
+      ? new Date(reserva.fecha_fin).toLocaleString('es-ES') 
       : 'Pendiente';
     
     // Añadir columnas en orden correcto
     tr.appendChild(tdSanitario);
     tr.appendChild(tdHoras);
-    tr.appendChild(tdFechaPeticion);
-    tr.appendChild(tdFechaInicio);
-    tr.appendChild(tdFechaFin);
+    tr.appendChild(tdFecha_Peticion);
+    tr.appendChild(tdFecha_Inicio);
+    tr.appendChild(tdFecha_Fin);
     
     cuerpoReservas.appendChild(tr);
     total++;

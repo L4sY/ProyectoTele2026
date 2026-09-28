@@ -1,304 +1,383 @@
 //Requerimos express y lo añadimos a una variable
 var express = require("express");
 var app = express();
-var ws = require("./servidorWS.js");
+// var ws = require("./servidorWS.js");
+var conexionBD = require("./conexion_mysql.js");
 
-//Requerimos los datos de datos.js, los 
-//importamos y añadimos a una variable
 var datosServidor = require('./datos.js');
-var sanitarios=datosServidor.san
+const { useCallback } = require("react");
 var gestores = datosServidor.gest
-var ubicaciones = datosServidor.ubic
-var categoria = datosServidor.cate
-var modelos = datosServidor.mod
-var recursos = datosServidor.rec
-var reservas = datosServidor.reservas
-var reseynas = datosServidor.resenyas
 
-console.log("==========GESTORES==============")
-console.log(gestores[0].usuario);
-console.log(gestores[0].password);
-console.log("---------------------------------")
-console.log(gestores[1].usuario);
-console.log(gestores[1].password);
 
-app.use("/appCliente", express.static("cliente")); 
+// console.log("==========GESTORES==============")
+// console.log(gestores[0].usuario);
+// console.log(gestores[0].password);
+// console.log("---------------------------------")
+// console.log(gestores[1].usuario);
+// console.log(gestores[1].password);
+
+app.use("/appCliente", express.static("cliente"));
 app.use(express.static("."));
 app.use(express.json());
 
-var siguienteGestor = 5;
-var siguienteRecurso = 12;
-
 //Obtener array ubicaciones
-app.get("/api/ubicaciones",function (req, res) {
-     res.status(200).json(ubicaciones)
+app.get("/api/ubicaciones", function (req, res) {
+    conexionBD.query("SELECT * FROM ubicaciones", function (error, datos) {
+        if (error) {
+            console.log("Error GET /api/ubicaciones:", error);
+            return res.status(500).json("Error en el servidor");
+        }
+        return res.status(200).json(datos);
+    });
 });
 
 //Obtener array categorias
-app.get("/api/categorias",function(req, res){
-    res.status(200).json(categoria)
+app.get("/api/categorias", function (req, res) {
+    conexionBD.query("SELECT * FROM categorias", function (error, datos) {
+        if (error) {
+            console.log("Error GET /api/categorias:", error);
+            return res.status(500).json("Error en el servidor");
+        }
+        return res.status(200).json(datos);
+    });
 });
 
 //Obtener array modelos
-app.get("/api/modelos", function(req, res){
-    res.status(200).json(modelos)
-})
+app.get("/api/modelos", function (req, res) {
+    conexionBD.query("SELECT * FROM modelos", function (error, datos) {
+        if (error) {
+            console.log("Error GET /api/modelos:", error);
+            return res.status(500).json("Error en el servidor");
+        }
+        return res.status(200).json(datos);
+    });
+});
 
-app.post("/api/gestores/login", function(req, res) {
-
+app.post("/api/gestores/login", function (req, res) {
     var loginG = req.body.usuario;
     var contraseña = req.body.password;
 
-    var gestorEncontrado = null; // Variable en el scope correcto
-
-    gestores.forEach(function(gestor) {
-        if (loginG == gestor.usuario && contraseña == gestor.password) {
-            gestorEncontrado = gestor; // Guardamos el objeto entero
+    conexionBD.query(
+        "SELECT id FROM gestores WHERE usuario = ? AND password = ?",
+        [loginG, contraseña],
+        function (error, datos) {
+            if (error) {
+                console.log("Error POST /api/gestores/login:", error);
+                return res.status(500).json("Error en el servidor");
+            }
+            if (datos.length == 0) {
+                return res.status(403).json("Usuario y contraseña incorrectos, vuelva a intentarlo");
+            }
+            return res.status(200).json(datos[0].id);
         }
-    });
-
-    if (gestorEncontrado) {
-        return res.status(200).json(gestorEncontrado.id);
-    } else {
-        return res.status(403).json("Usuario y contraseña incorrectos, vuelva a intentarlo");
-    }
+    );
 });
 
-app.post("/api/gestores", function(req, res){
+app.post("/api/gestores", function (req, res) {
     //Usar estos nombres para el body de la peticion
-    var {nombre, apellidos, usuario, password} = req.body;
+    var { nombre, apellidos, usuario, password } = req.body;
 
-    var duplicado = gestores.some(function (g){
-        return g.usuario == usuario
-    })
-    if (duplicado){
-        return res.status(409).json("El nombre de usuario: "+usuario +"ya esta en uso ")
-    }
+    conexionBD.query(
+        "SELECT id FROM gestores WHERE usuario = ?",
+        [usuario],
+        function (error, datos) {
+            if (error) {
+                console.log("Error POST /api/gestores (comprobación):", error);
+                return res.status(500).json("Error en el servidor");
+            }
+            if (datos.length > 0) {
+                return res.status(409).json("El nombre de usuario: " + usuario + " ya esta en uso ");
+            }
 
-    console.log(req.body)
-    var gestorNuevo = {
-    id: siguienteGestor,
-    nombre,
-    apellidos,
-    usuario,
-    password,
-    }
-    console.log(gestorNuevo)
-    gestores.push(gestorNuevo)
-    siguienteGestor++;
-
-    res.status(201).json("Gestor creado correctamente")
+            conexionBD.query(
+                "INSERT INTO gestores (nombre, apellidos, usuario, password) VALUES (?, ?, ?, ?)",
+                [nombre, apellidos, usuario, password],
+                function (error, resultado) {
+                    if (error) {
+                        console.log("Error POST /api/gestores (insert):", error);
+                        return res.status(500).json("Error en el servidor");
+                    }
+                    console.log("Usuario creado correctamente " + resultado[0])
+                    return res.status(201).json("Gestor "+usuario+" creado correctamente");
+                }
+            );
+        }
+    );
 });
 
-app.put("/api/gestores/:id", function(req, res){
-    //Controlar duplicados del usuario
+app.put("/api/gestores/:id", function (req, res) {
     var idGestor = req.params.id;
-    
-    var posicionGestor = gestores.findIndex(function (gestor){
-        return gestor.id == idGestor;
-    });
+    var { nombre, apellidos, usuario, password } = req.body;
 
-    var usuarioRepetido = gestores.some(function(gestor){
-        return gestor.id != idGestor && gestor.usuario == req.body.usuario 
-    })
+    conexionBD.query(
+        "SELECT id FROM gestores WHERE usuario = ? AND id != ?",
+        [usuario, idGestor],
+        function (error, datosDuplicado) {
+            if (error) {
+                console.log("Error PUT /api/gestores (comprobación):", error);
+                return res.status(500).json("Error en el servidor");
+            }
+            if (datosDuplicado.length > 0) {
+                return res.status(409).json("El usuario ya esta en uso");
+            }
 
-    if (posicionGestor == -1){
-       return res.status(404).json("No existe un gestor con el codigo "+idGestor)
-    }
-    else if (usuarioRepetido && idGestor!=gestores[posicionGestor].id){
-        return res.status(409).json("El usuario ya esta en uso")
-    }
-    else{
-        var {id, ...resto} = req.body;
-
-        gestores[posicionGestor] = {...gestores[posicionGestor], ...resto};
-        console.log(gestores[posicionGestor])
-        return res.status(200).json("Datos del gestor actualizados correctamente"+gestores[posicionGestor])
-    }
-    // else{
-    // gestores[posicionGestor].nombre = req.body.nombre;
-    // gestores[posicionGestor].apellidos = req.body.apellidos;
-    // gestores[posicionGestor].usuario = req.body.usuario;
-    // gestores[posicionGestor].password = req.body.password;
-    //     res.status(200).json("Datos del gestor actualizados correctamente"+gestores[posicionGestor])
-    // }
+            conexionBD.query(
+                "UPDATE gestores SET nombre = ?, apellidos = ?, usuario = ?, password = ? WHERE id = ?",
+                [nombre, apellidos, usuario, password, idGestor],
+                function (error, resultado) {
+                    if (error) {
+                        console.log("Error PUT /api/gestores (update):", error);
+                        return res.status(500).json("Error en el servidor");
+                    }
+                    if (resultado.affectedRows == 0) {
+                        return res.status(404).json("No existe un gestor con el codigo " + idGestor);
+                    }
+                    return res.status(200).json("Datos del gestor actualizados correctamente");
+                }
+            );
+        }
+    );
 });
 
-app.get("/api/gestores/:id", function(req, res){
+app.get("/api/gestores/:id", function (req, res) {
     var idGestor = req.params.id;
 
-    var posicionGestor = gestores.findIndex(function (gestor){
-        return gestor.id == idGestor;
-    });
-
-    if (posicionGestor == -1){
-        return res.status(404).json("No existe un gestor con el codigo "+idGestor)
-    }
-    else{
-        var {id,password, ...resto} = gestores[posicionGestor];
-        return res.status(200).json(resto);
-
-    }
+    conexionBD.query(
+        "SELECT id, nombre, apellidos, usuario FROM gestores WHERE id = ?",
+        [idGestor],
+        function (error, datos) {
+            if (error) {
+                console.log("Error GET /api/gestores/:id:", error);
+                return res.status(500).json("Error en el servidor");
+            }
+            if (datos.length == 0) {
+                return res.status(404).json("No existe un gestor con el codigo " + idGestor);
+            }
+            return res.status(200).json(datos[0]);
+        }
+    );
 });
 
-app.get("/api/sanitarios/:id", function(req, res){
+app.get("/api/sanitarios/:id", function (req, res) {
     var idSanitario = req.params.id;
 
-    var posicionSanitario = sanitarios.findIndex(function (sanitario){
-        return sanitario.id == idSanitario;
+    conexionBD.query(
+        "SELECT id, nombre, apellidos, usuario FROM sanitarios WHERE id = ?",
+        [idSanitario],
+        function (error, datos) {
+            if (error) {
+                console.log("Error GET /api/sanitarios/:id:", error);
+                return res.status(500).json("Error en el servidor");
+            }
+            if (datos.length == 0) {
+                return res.status(404).json("No existe un sanitario con el codigo " + idSanitario);
+            }
+            return res.status(200).json(datos[0]);
+        }
+    );
+});
+
+app.get("/api/recursos", function (req, res) {
+    var { categoria, modelo, ubicacion, estado } = req.query;
+
+    var sql = "SELECT recursos.* FROM recursos";
+    var condiciones = [];
+    var valores = [];
+
+    if (categoria) {
+        sql += " INNER JOIN modelos ON recursos.modelo = modelos.id";
+        condiciones.push("modelos.categoria = ?");
+        valores.push(categoria);
+    }
+    if (modelo) {
+        condiciones.push("recursos.modelo = ?");
+        valores.push(modelo);
+    }
+    if (ubicacion) {
+        condiciones.push("recursos.ubicacion = ?");
+        valores.push(ubicacion);
+    }
+    if (estado) {
+        condiciones.push("recursos.estado = ?");
+        valores.push(estado);
+    }
+
+    if (condiciones.length > 0) {
+        sql += " WHERE " + condiciones.join(" AND ");
+    }
+
+    conexionBD.query(sql, valores, function (error, datos) {
+        if (error) {
+            console.log("Error GET /api/recursos:", error);
+            return res.status(500).json("Error en el servidor");
+        }
+        return res.status(200).json(datos);
     });
-
-    if (posicionSanitario == -1){
-        return res.status(404).json("No existe un sanitario con el codigo "+idSanitario)
-    }
-    else{
-        var {password, ...resto} = sanitarios[posicionSanitario];
-        return res.status(200).json(resto);
-
-    }
 });
 
-app.get("/api/recursos", function(req, res) {
-  var { categoria, modelo, ubicacion, estado } = req.query;
-
-  var filtrados = recursos.filter(function(r) {
-   if (categoria){
-      var mod = modelos.find(function(m){
-        return m.id == r.modelo;
-      }); 
-
-      if (!mod) return false; //Comprueba que no se devuelva undefined
-      if (mod.categoria != categoria) return false;
-    }
-    //Comprobar que el dato no es null/undefined y la condicion
-    if (modelo && r.modelo != modelo) return false;
-    if (ubicacion && r.ubicacion != ubicacion) return false;
-    if (estado && r.estado != estado) return false;
-
-    return true;
-  });
-
-  return res.status(200).json(filtrados);
-});
-
-
-app.get("/api/recursos/:id", function(req, res){
+app.get("/api/recursos/:id", function (req, res) {
     var idRecurso = req.params.id;
 
-    //Recorremos el array de recursos hasta que la comparacion del ID sea true
-    //cuando lo encuentra devuelve ese INDEX
-    var posicionRecurso = recursos.findIndex(function(recurso){
-        return recurso.id == idRecurso;
-    });
+    conexionBD.query(
+        "SELECT * FROM recursos WHERE id = ?",
+        [idRecurso],
+        function (error, datos) {
+            if (error) {
+                console.log("Error GET /api/recursos/:id:", error);
+                return res.status(500).json("Error en el servidor");
+            }
+            if (datos.length == 0) {
+                return res.status(404).json("Recurso no encontrado");
+            }
+            return res.status(200).json(datos[0]);
+        }
+    );
+});
 
-    if (posicionRecurso == -1){
-        return res.status(404).json("Recurso no encontrado");
-    }
+app.post("/api/recursos", function (req, res) {
+    var { categoria, modelo, numSerie, ubicacion, estado, idGestor } = req.body;
 
-    return res.status(200).json(recursos[posicionRecurso]);
-    
-})
+    conexionBD.query(
+        "SELECT id FROM recursos WHERE numero_serie = ?",
+        [numSerie],
+        function (error, datosDuplicado) {
+            if (error) {
+                console.log("Error POST /api/recursos (comprobación):", error);
+                return res.status(500).json("Error en el servidor");
+            }
+            if (datosDuplicado.length > 0) {
+                return res.status(409).json("Numero de serie: " + numSerie + " ya en uso");
+            }
 
-app.post("/api/recursos", function(req, res){
-    var {categoria, modelo, numSerie, ubicacion, estado, idGestor} = req.body;
+            conexionBD.query(
+                "INSERT INTO recursos (modelo, ubicacion, numero_serie, estado) VALUES (?, ?, ?, ?)",
+                [modelo, ubicacion, numSerie, estado],
+                function (error, resultado) {
+                    if (error) {
+                        console.log("Error POST /api/recursos (insert):", error);
+                        return res.status(500).json("Error en el servidor");
+                    }
+                    res.status(200).json("Nuevo recurso creado con id: " + resultado.insertId);
+                    // ws.notificarNuevoRecurso(categoria, modelo, numSerie, idGestor, resultado.insertId);
+                }
+            );
+        }
+    );
+});
 
-    var duplicado = recursos.some(function(recurso){
-        return recurso.numero_serie == numSerie;
-    })
-    if (duplicado){
-        return res.status(409).json("Numero de serie: "+numSerie+" ya en uso")
-    }
-    var nuevoRecurso = {
-        id: siguienteRecurso,
-        modelo,
-        ubicacion,
-        numSerie,
-        estado
-    }
-    recursos.push(nuevoRecurso)
-    res.status(200).json("Nuevo recurso creado: "+recursos[recursos.length-1])
-    ws.notificarNuevoRecurso(categoria, modelo, numSerie, idGestor, siguienteRecurso)
-    siguienteRecurso++;
-})
+app.put("/api/recursos/:id", function (req, res) {
+    var idRecurso = req.params.id;
+    var { modelo, numero_serie, ubicacion, estado } = req.body;
 
+    conexionBD.query(
+        "SELECT id FROM recursos WHERE numero_serie = ? AND id != ?",
+        [numero_serie, idRecurso],
+        function (error, datosDuplicado) {
+            if (error) {
+                console.log("Error PUT /api/recursos (comprobación):", error);
+                return res.status(500).json("Error en el servidor");
+            }
+            if (datosDuplicado.length > 0) {
+                return res.status(409).json("Numero de serie ya en uso");
+            }
 
-app.put("/api/recursos/:id", function(req,res){
+            conexionBD.query(
+                "UPDATE recursos SET modelo = ?, numero_serie = ?, ubicacion = ?, estado = ? WHERE id = ?",
+                [modelo, numero_serie, ubicacion, estado, idRecurso],
+                function (error, resultado) {
+                    if (error) {
+                        console.log("Error PUT /api/recursos (update):", error);
+                        return res.status(500).json("Error en el servidor");
+                    }
+                    if (resultado.affectedRows == 0) {
+                        return res.status(404).json("Recurso no encontrado");
+                    }
+                    return res.status(201).json("Recurso actualizado correctamente");
+                }
+            );
+        }
+    );
+});
+
+app.delete("/api/recursos/:id", function (req, res) {
     var idRecurso = req.params.id;
 
-    var recurso = recursos.findIndex(function(r){
-        return idRecurso == r.id
-    })
-
-    var nSerieRepetido = recursos.some(function(rNumS){
-        return  idRecurso != rNumS.id && req.body.numero_serie == rNumS.numero_serie
-    })
-
-    if(recurso == -1){
-        return res.status(404).json("Recurso no encontrado")
-    } else if (nSerieRepetido) {
-        return res.status(409).json("Numero de serie ya en uso")
-    } else{
-        var {id, ...resto} = req.body
-        recursos[recurso] = {...recursos[recurso], ...resto};
-        console.log(recursos[recurso])
-        return res.status(201).json("Recurso actualizado correctamente")
-    }
-    
-})
-
-app.delete("/api/recursos/:id", function(req, res){
-  var idRecurso = req.params.id;
-
-  var posicionRecurso = recursos.findIndex(function(r){
-    return r.id == idRecurso;
-  });
-
-  if (posicionRecurso == -1){
-    return res.status(404).json("Recurso no encontrado");
-  }
-
-  recursos.splice(posicionRecurso, 1); 
-
-  return res.status(200).json("Recurso borrado correctamente");
+    conexionBD.query(
+        "DELETE FROM recursos WHERE id = ?",
+        [idRecurso],
+        function (error, resultado) {
+            if (error) {
+                console.log("Error DELETE /api/recursos/:id:", error);
+                return res.status(500).json("Error en el servidor");
+            }
+            if (resultado.affectedRows == 0) {
+                return res.status(404).json("Recurso no encontrado");
+            }
+            return res.status(200).json("Recurso borrado correctamente");
+        }
+    );
 });
 
-app.get("/api/recursos/:id/reservas", function(req, res){
-  var idRecurso = req.params.id;
+app.get("/api/recursos/:id/reservas", function (req, res) {
+    var idRecurso = req.params.id;
 
-  var posicionRecurso = recursos.findIndex(function(r){
-    return r.id == idRecurso;
-  });
+    conexionBD.query(
+        "SELECT id FROM recursos WHERE id = ?",
+        [idRecurso],
+        function (error, datosRecurso) {
+            if (error) {
+                console.log("Error GET /api/recursos/:id/reservas (comprobación):", error);
+                return res.status(500).json("Error en el servidor");
+            }
+            if (datosRecurso.length == 0) {
+                return res.status(404).json("Recurso no encontrado");
+            }
 
-  if (posicionRecurso == -1){
-    return res.status(404).json("Recurso no encontrado");
-  }
+            conexionBD.query(
+                "SELECT * FROM reservas WHERE recurso = ?",
+                [idRecurso],
+                function (error, datos) {
+                    if (error) {
+                        console.log("Error GET /api/recursos/:id/reservas:", error);
+                        return res.status(500).json("Error en el servidor");
+                    }
+                    return res.status(200).json(datos);
+                }
+            );
+        }
+    );
+});
 
-  var reservasRecurso = reservas.filter(function(rv){
-    return rv.recurso == idRecurso;
-  }); 
+app.get("/api/recursos/:id/resenyas", function (req, res) {
+    var idRecurso = req.params.id;
 
-  return res.status(200).json(reservasRecurso);
+    conexionBD.query(
+        "SELECT id FROM recursos WHERE id = ?",
+        [idRecurso],
+        function (error, datosRecurso) {
+            if (error) {
+                console.log("Error GET /api/recursos/:id/resenyas (comprobación):", error);
+                return res.status(500).json("Error en el servidor");
+            }
+            if (datosRecurso.length == 0) {
+                return res.status(404).json("Recurso no encontrado");
+            }
+
+            conexionBD.query(
+                "SELECT * FROM resenyas WHERE recurso = ?",
+                [idRecurso],
+                function (error, datos) {
+                    if (error) {
+                        console.log("Error GET /api/recursos/:id/resenyas:", error);
+                        return res.status(500).json("Error en el servidor");
+                    }
+                    return res.status(200).json(datos);
+                }
+            );
+        }
+    );
 });
 
 
-app.get("/api/recursos/:id/resenyas", function(req, res){
-  var idRecurso = req.params.id;
 
-  var posicionRecurso = recursos.findIndex(function(r){
-    return r.id == idRecurso;
-  });
-
-  if (posicionRecurso == -1){
-    return res.status(404).json("Recurso no encontrado");
-  } 
-
-  var resenyasRecurso = reseynas.filter(function(rs){
-    return rs.recurso == idRecurso;
-  });
-
-  return res.status(200).json(resenyasRecurso);
-});
-
-
-
-app.listen(3000)
+app.listen(3000);

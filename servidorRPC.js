@@ -1,8 +1,8 @@
 var rpc = require("./rpc.js");
-let ws = require("./servidorWS.js")
-var datosServidor = require("./datos.js")
+// let ws = require("./servidorWS.js")
+
 var conexionBD = require("./conexion_mysql.js");
-const conexion = require("./conexion_mysql.js");
+
 
 rpc.debug = true
 
@@ -11,13 +11,13 @@ var app = servidor.createApp("gestion_pacientes");
 
 let idUsuario = null;
 
-console.log("Servidor iniciado correctamente");
-console.log("===========SANITARIOS============")
-console.log(sanitarios[0].usuario)
-console.log(sanitarios[0].password)
-console.log("---------------------------------")
-console.log(sanitarios[1].usuario)
-console.log(sanitarios[1].password)
+// console.log("Servidor iniciado correctamente");
+// console.log("===========SANITARIOS============")
+// console.log(sanitarios[0].usuario)
+// console.log(sanitarios[0].password)
+// console.log("---------------------------------")
+// console.log(sanitarios[1].usuario)
+// console.log(sanitarios[1].password)
 
 // CAMBIO: función auxiliar para fecha local en formato "YYYY-MM-DD HH:MM:SS"
 function fechaLocal() {
@@ -56,7 +56,9 @@ function obtenerUbicaciones(callback) {
 
 function loginSanitario(usuario, password, callback) {
 
-    conexionBD.query("SELECT id FROM sanitarios WHERE usuario = ? AND password = ?",[usuario, password],function(error,datos){
+    conexionBD.query("SELECT id FROM sanitarios WHERE usuario = ? AND password = ?",
+        [usuario, password],
+        function(error,datos){
         if (error){
             console.log("Error en el login:"+error)
             return callback(null);
@@ -71,70 +73,62 @@ function loginSanitario(usuario, password, callback) {
 
 function crearSanitario(datosSanitario, callback) {
     var { nombre, apellidos, usuario, password } = datosSanitario;
-    
-    //Comprueba que los campos no esten vacios
     if (!nombre || !apellidos || !usuario || !password) {
-            return callback(null);
-        }
-    
-        conexionBD.query("SELECT id FROM sanitarios WHERE usuario = ?",
-            [usuario],
-            function (error, datos) {
-                if (error) {
-                    console.log("Error crearSanitario (comprobación):", error);
-                    return callback(null);
+        return callback(null);
+    }
+
+    conexionBD.query("SELECT id FROM sanitarios WHERE usuario = ?", [usuario],
+        function (error, datos) {
+            if (error) {
+                console.log("Error crearSanitario (comprobación):", error);
+                return callback(null);
+            }
+            if (datos.length > 0) {
+                return callback(null); // usuario repetido
+            }
+            conexionBD.query(
+                "INSERT INTO sanitarios (nombre, apellidos, usuario, password) VALUES (?, ?, ?, ?)",
+                [nombre, apellidos, usuario, password],
+                function (error, resultado) {
+                    if (error) {
+                        console.log("Error al crear sanitario:", error);
+                        return callback(null);
+                    }
+                    return callback(resultado.insertId);
                 }
-                if (datos.length > 0) {
-                    return callback(null); // usuario repetido
-                }
-        })
-            
-    //Añade el saniario a la base de datos
-    conexionBD.query("INSERT INTO sanitarios (nombre, apellidos, usuario, password) VALUES (?, ?, ?, ?)",
-        [nombre, apellidos, usuario, password],
-        function(error,datos){
-        if (error){
-            console.log("Error al crear sanitario "+error)
-            return callback(null)
-        } else {
-            return callback(datos.insertId)
+            );
         }
-    })
+    );
 }
 
 function actualizarSanitario(idSanitario, datosSanitario, callback) {
-
-
-    var { nombre, apellidos} = datosSanitario;
-
+    var { nombre, apellidos } = datosSanitario;
     if (!nombre || !apellidos) {
         return callback(null);
     }
 
-    conexionBD("UPDATE sanitarios SET (nombre, apellidos) VALUES (?,?) WHERE id = ?",
-        [nombre,apellidos,idSanitario],
-        function(error,datos){
-            if (error){
-                console.log("Ha ocurrido un error al actualizar el sanitario:", error);
-                return callback(null)
+    conexionBD.query("UPDATE sanitarios SET nombre = ?, apellidos = ? WHERE id = ?",
+        [nombre, apellidos, idSanitario],
+        function (error, resultado) {
+            if (error) {
+                console.log("Error al actualizar el sanitario:", error);
+                return callback(null);
             }
-            //Se hace affectedRows porque Update devuelve un objeto con atributos
-            // affectedRows, changedRows, insertId, warningStatus
-            if(datos.affectedRows == 0){
-                console.log("No se ha encontrado al sanitario")
-                return callback (null)
+            if (resultado.affectedRows == 0) {
+                return callback(null); // no existe
             }
-
-            conexionBD("SELECT (?,?) FROM sanitarios WHERE id = ?",
-                [nombre,apellidos,idSanitario],
-                function(error,datos){
-                    if (error || datos.length == 0){
-                        console.log("Error mostrando los datos del sanitario", error)
+            conexionBD.query("SELECT id, nombre, apellidos FROM sanitarios WHERE id = ?",
+                [idSanitario],
+                function (error, datos) {
+                    if (error || datos.length == 0) {
+                        console.log("Error mostrando los datos del sanitario:", error);
                         return callback(null);
                     }
                     return callback(datos[0]);
-            })
-    })
+                }
+            );
+        }
+    );
 }
 
 function obtenerSanitario(idSanitario, callback) {
@@ -217,7 +211,7 @@ function crearResenya(idRecurso, idSanitario, valoracion, descripcion, callback)
                 console.log("Error crearResenya:", error);
                 return callback(null);
             }
-            ws.notificarNuevaResenya(idRecurso, valoracion, idSanitario, descripcion);
+            // ws.notificarNuevaResenya(idRecurso, valoracion, idSanitario, descripcion);
             return callback(resultado.insertId);
         }
     );
@@ -277,7 +271,7 @@ function iniciarReserva(idReserva, callback) {
                         if (error) console.log("Error iniciarReserva (update):", error);
                         return callback(false);
                     }
-                    ws.notificarCambioReserva("inicio", idReserva, idSanitarioReserva);
+                    // ws.notificarCambioReserva("inicio", idReserva, idSanitarioReserva);
                     return callback(true);
                 }
             );
@@ -304,7 +298,7 @@ function finalizarReserva(idReserva, callback) {
                         if (error) console.log("Error finalizarReserva (update):", error);
                         return callback(false);
                     }
-                    ws.notificarCambioReserva("fin", idReserva, idSanitarioReserva);
+                    // ws.notificarCambioReserva("fin", idReserva, idSanitarioReserva);
                     return callback(true);
                 }
             );
