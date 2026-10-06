@@ -5,7 +5,7 @@ var app = express();
 var conexionBD = require("./conexion_mysql.js");
 
 var datosServidor = require('./datos.js');
-const { useCallback } = require("react");
+const conexion = require("./conexion_mysql.js");
 var gestores = datosServidor.gest
 
 
@@ -19,6 +19,10 @@ var gestores = datosServidor.gest
 app.use("/appCliente", express.static("cliente"));
 app.use(express.static("."));
 app.use(express.json());
+
+function fechaLocal() {
+    return new Date().toLocaleString("sv-SE");
+}
 
 //Obtener array ubicaciones
 app.get("/api/ubicaciones", function (req, res) {
@@ -378,6 +382,40 @@ app.get("/api/recursos/:id/resenyas", function (req, res) {
     );
 });
 
+// app.post("/api/area_salud", function (req, res) {
+//     var { Codigo_postal, nombre, gestor, sanitario } = req.body;
+
+//     if (!Codigo_postal || !nombre || !gestor) {
+//         return res.status(400).json("Faltan datos (codigo postal, nombre o gestor)");
+//     }
+
+//     conexionBD.query("SELECT * FROM salud WHERE Codigo_postal = ?",
+//         [Codigo_postal],
+//         function (error, datos) {
+//             if (error) {
+//                 console.log("Error POST /api/area_salud (comprobación):", error);
+//                 return res.status(500).json("Error en el servidor");
+//             }
+
+//             if (datos.length > 0) {
+//                 return res.status(409).json("Ya existe un área de salud con el código postal " + Codigo_postal);
+//             }
+
+//             conexionBD.query(
+//                 "INSERT INTO salud (Codigo_postal, nombre, gestor, sanitario) VALUES (?, ?, ?, ?)",
+//                 [Codigo_postal, nombre, gestor, sanitario],
+//                 function (error, resultado) {
+//                     if (error) {
+//                         console.log("Error POST /api/area_salud (insert):", error);
+//                         return res.status(500).json("Error en el servidor");
+//                     }
+//                     console.log("Zona de salud creada correctamente " + resultado.insertId);
+//                     return res.status(201).json("Area " + nombre + " creada correctamente");
+//                 }
+//             );
+//         }
+//     );
+// });
 
 
 app.listen(3000);

@@ -29,7 +29,7 @@ var modelos = [];
 var ubicaciones = [];
 var sanitarios = [];
 
-var modoRecurso = "nuevo";
+var idRecursoEditado = null;
 
 
 var textoBienvenida = document.getElementById("textoBienvenida");
@@ -185,7 +185,7 @@ function limpiarFormularioRecurso() {
   selectModelo.value = "";
   selectUbicacion.value = "";
   selectEstado.value = "";
-  modoRecurso = "nuevo";  // Reset modo
+  idRecursoEditado = null;  // Reset modo
 }
 
 //Hacer get de Recursos categorias y modelos
@@ -303,7 +303,8 @@ function pintarTablaRecursos(lista) {
     btnEditar.textContent = "Editar";
     btnEditar.className = "btn-editar";
     btnEditar.onclick = function() { 
-      editarRecurso(r.id); 
+      editarRecurso(r.id);
+      idRecursoEditado = r.id 
     };
     
     // Botón ELIMINAR
@@ -666,7 +667,7 @@ function cargarSelect() {
 
 
 document.getElementById("addRecurso").onclick = function() {
-  modoRecurso = "nuevo"; 
+  idRecursoEditado = null; 
   limpiarFormularioRecurso();
   cambiarSeccion("recurso");
 };

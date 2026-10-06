@@ -18,11 +18,30 @@ var cancelarReserva     = app.procedure("cancelarReserva");
 var iniciarReserva      = app.procedure("iniciarReserva");
 var finalizarReserva    = app.procedure("finalizarReserva");
 var obtenerRecurso      = app.procedure("obtenerRecurso");
+// var asignarArea         = app.procedure("asignarArea")
 
 var seccionActual    = "login";
 var ultimaSeccion    = "";
 var idUsuarioActivo  = null;
 var idRecursoResenya = null;
+
+function etiquetarTablas() {
+  document.querySelectorAll('table').forEach(tabla => {
+    const cabeceras = [...tabla.querySelectorAll('thead th')].map(th => th.textContent.trim());
+    tabla.querySelectorAll('tbody tr').forEach(tr => {
+      [...tr.children].forEach((td, i) => {
+        if (cabeceras[i] && td.getAttribute('data-label') !== cabeceras[i]) {
+          td.setAttribute('data-label', cabeceras[i]);
+        }
+      });
+    });
+  });
+}
+
+new MutationObserver(etiquetarTablas)
+  .observe(document.body, { childList: true, subtree: true });
+
+etiquetarTablas();
 
 function cambiarSeccion(seccion) {
     document.getElementById(seccionActual).classList.remove("activa");
@@ -85,7 +104,14 @@ function guardarRegistro() {
             document.getElementById("errorRegistro").textContent = "Nombre y apellidos son obligatorios.";
             return;
         }
-        crearSanitario({ nombre, apellidos, usuario, password }, function (id) {
+
+        var nuevoSanitario = {
+            nombre : nombre,
+            apellidos : apellidos,
+            usuario : usuario,
+            password : password
+        }
+        crearSanitario(nuevoSanitario, function (id) {
             if (!id) {
                 document.getElementById("errorRegistro").textContent = "Usuario ya existente o datos inválidos.";
             } else {
@@ -383,7 +409,10 @@ function filtrarModelos() {
 
 function buscarRecursos() {
     var idModelo = parseInt(document.getElementById("modeloRecurso").value);
-    if (!idModelo) { alert("Selecciona un modelo."); return; }
+    if (!idModelo) {
+        alert("Selecciona un modelo.");
+        return; 
+    }
 
     obtenerRecursos(idModelo, function (recursos) {
         var tbody   = document.getElementById("cuerpoTRecursos");
@@ -437,17 +466,17 @@ function buscarRecursos() {
                             var btnRetirar = document.createElement("button");
                             btnRetirar.className = "btn-accion btn-iniciar";
                             btnRetirar.textContent = "Retirar";
-                            btnRetirar.onclick = (function (id) {
-                                return function () { hacerReserva(id); };
-                            })(recurso.id);
+                            btnRetirar.onclick = function () {
+                               hacerReserva(recurso.id)
+                            }
                             tdAccion.appendChild(btnRetirar);
                         } else {
                             var btnReservar = document.createElement("button");
                             btnReservar.className = "btn-accion btn-reservar";
                             btnReservar.textContent = "Reservar";
-                            btnReservar.onclick = (function (id) {
-                                return function () { hacerReserva(id); };
-                            })(recurso.id);
+                            btnReservar.onclick = function () {
+                               hacerReserva(recurso.id); 
+                            }
                             tdAccion.appendChild(btnReservar);
                         }
 
@@ -529,7 +558,7 @@ function editarDatos() {
     obtenerSanitario(idUsuarioActivo, function (sanitario) {
         document.getElementById("nameRegistro").value        = sanitario.nombre;
         document.getElementById("apellidosRegistro").value   = sanitario.apellidos;
-        document.getElementById("userRegistro").value        = sanitario.usuario;
+        document.getElementById("userRegistro").value        = "";
         document.getElementById("passRegistro").value        = "";
         document.getElementById("userRegistro").readOnly     = true;
         document.getElementById("passRegistro").readOnly     = true;
@@ -537,6 +566,25 @@ function editarDatos() {
         cambiarSeccion("registro");
     });
 }
+
+// function cambiarArea() {
+    
+//     var inputcodigopostal = document.getElementById("asignararea");
+//     var codigo_postal = inputcodigopostal.value.trim();
+
+//     var confirmar = confirm("Seguro que quieres cambiar tu área de salud a " + codigo_postal);
+
+//     if (confirmar) {
+//         asignarArea(idUsuarioActivo, codigo_postal, function (correcto) {
+//             console.log(correcto)
+//             if (true == correcto) {
+//                 alert("Actualizado");
+//             } else {
+//                 alert("Error actualizando");
+//             }
+//         });
+//     }
+// }
 
 function salir() {
     idUsuarioActivo = null;

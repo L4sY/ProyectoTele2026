@@ -1,8 +1,8 @@
 const mysql = require('mysql');
 const database = {
     host : 'localhost',
-    user : 'tele2026',
-    password : '2026tele',
+    user : 'tele2627',
+    password : '2627tele',
     database : 'telemedicina2026'
 };
 

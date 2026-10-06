@@ -24,12 +24,14 @@ var selEstMenu = document.getElementById("estadoMenu");
 var userLogin = document.getElementById("userLogin");
 var passLogin = document.getElementById("passLogin");
 
+
+
 var categorias = [];
 var modelos = [];
 var ubicaciones = [];
 var sanitarios = [];
 
-var modoRecurso = "nuevo";
+var idRecursoEditado = null;
 
 
 var textoBienvenida = document.getElementById("textoBienvenida");
@@ -173,7 +175,7 @@ function limpiarFormularioRecurso() {
   selectModelo.value = "";
   selectUbicacion.value = "";
   selectEstado.value = "";
-  modoRecurso = "nuevo";  // Reset modo
+  idRecursoEditado = null;  // Reset modo
 }
 
 //Hacer get de Recursos categorias y modelos
@@ -545,6 +547,7 @@ function pintarTablaReservas(reservas) {
 
 
 function editarRecurso(idRecurso) {
+  idRecursoEditado = null
   rest.get("/api/recursos/" + idRecurso, function(estado, recurso) {
     if (estado !== 200) {
       alert("Error: " + estado);
@@ -564,6 +567,7 @@ function editarRecurso(idRecurso) {
     
 
     cargarFichaRecurso(idRecurso);
+    idRecursoEditado = idRecurso;
     cambiarSeccion("recurso");
   });
 }
@@ -667,10 +671,38 @@ function cargarSelect() {
 
 
 document.getElementById("addRecurso").onclick = function() {
-  modoRecurso = "nuevo"; 
+  idRecursoEditado = null; 
   limpiarFormularioRecurso();
   cambiarSeccion("recurso");
 };
+
+
+// document.getElementById("botonenviarsalud").onclick = function () {
+//     var codigopostal = document.getElementById("codigopostal").value.trim();
+//     var nombresalud = document.getElementById("nombresalud").value.trim();
+
+//     if (codigopostal === "" || nombresalud === "") {
+//         return alert("Rellena el código postal y el nombre.");
+//     }
+
+//     var nuevoArea = {
+//         Codigo_postal: codigopostal,
+//         nombre: nombresalud,
+//         gestor: idGestor,
+//         sanitario: null
+//     };
+
+//     rest.post("/api/area_salud", nuevoArea, function (estado, datos) {
+//         if (estado === 201) {
+//             alert(datos);
+//             document.getElementById("codigopostal").value = "";
+//             document.getElementById("nombresalud").value = "";
+//         } else {
+//             alert("Error " + estado + ": " + datos);
+//             console.log(datos);
+//         }
+//     });
+// };
 
 
 cargarSelect();

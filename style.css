@@ -297,3 +297,89 @@ footer hr { margin: 18px auto 10px; }
 #tablaAvisos {
   overflow: hidden;
 }
+
+/* ====== RESPONSIVE: SIN SCROLL HORIZONTAL ====== */
+html, body{
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+img, video, canvas, svg{
+  max-width: 100%;
+  height: auto;
+}
+
+h1, h2, h3, p, label, td, th, button{
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 768px){
+
+  #login, #registro, #menuPrincipal, #reserva, #resenya{
+    padding: 14px 12px;
+  }
+
+  /* Anular lo que causaba el scroll */
+  .tabla-contenedor{
+    overflow-x: visible;
+    border: none;
+  }
+  #tablaAvisos{ overflow: visible; }
+  table{ min-width: 0; }
+  th, td{ white-space: normal; }
+
+  /* Tablas apiladas: cada fila es una tarjeta */
+  table, thead, tbody, tfoot, tr, th, td{
+    display: block;
+    width: 100%;
+  }
+
+  thead{ display: none; }
+
+  tr{
+    margin-bottom: 12px;
+    border: 1px solid #e6e8f2;
+    border-radius: 10px;
+    padding: 6px 10px;
+    background: #fff;
+  }
+
+  td{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    text-align: right;
+    border-bottom: 1px solid #eef0f7;
+  }
+
+  td:last-child{ border-bottom: none; }
+
+  td::before{
+    content: attr(data-label);
+    font-weight: 600;
+    color: #4f04d1;
+    text-align: left;
+    flex-shrink: 0;
+  }
+
+  /* Botones de acciones */
+  .td-acciones{
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .btn-accion{
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  /* Pie de tabla sin etiqueta */
+  tfoot td{
+    justify-content: center;
+    text-align: center;
+  }
+  tfoot td::before{ content: none; }
+
+  /* Evita el zoom automático de iOS */
+  input, select, textarea{ font-size: 16px; }
+}

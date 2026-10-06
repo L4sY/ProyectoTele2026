@@ -322,6 +322,35 @@ function obtenerRecurso(idRecurso, callback) {
     );
 }
 
+// function asignarArea(idSanitario,codigoPostal, callback){
+//     conexionBD.query(
+//         "SELECT * FROM salud WHERE Codigo_postal = ?",
+//         [codigoPostal],
+//         function(error,datos) {
+//             if (error) {
+//                 console.log("Error asignando area:",error)
+//                 return callback(false);
+//             }
+//             if (datos.length == 0){
+//                 return callback(false)
+//             }
+            
+//             conexionBD.query(
+//                 "UPDATE sanitarios SET area_salud = ? WHERE id = ?",
+//                 [codigoPostal,idSanitario],
+//                 function(error,datosSanitario){
+//                     if (error || datosSanitario.affectedRows == 0) {
+//                         if (error) console.log("Error cambiar area", error);
+//                         return callback(false);
+//                     }
+//                     console.log("Area de salud del sanitario cambiada correctamente")
+//                     return callback(true);
+//                 }
+//             )
+//         }
+//     )
+// }
+
 app.registerAsync(obtenerCategorias);
 app.registerAsync(obtenerModelos);
 app.registerAsync(obtenerUbicaciones);
@@ -339,3 +368,4 @@ app.registerAsync(cancelarReserva);
 app.registerAsync(iniciarReserva);
 app.registerAsync(finalizarReserva);
 app.registerAsync(obtenerRecurso);
+// app.registerAsync(asignarArea);

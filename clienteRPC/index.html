@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <link rel="icon" type="image/png" href="../Misc/Sanitario.png">
   <link rel="stylesheet" href="../style.css">
   <title>Sanitarios</title>
@@ -60,6 +60,13 @@
     <p id="textoBienvenida"></p>
     <button onclick="editarDatos()">Editar datos</button>
 
+    <!-- <fieldset>
+      <label for="asignararea">Seleccione Area de Salud</label>
+      <input type="text" name="asignararea" id="asignararea">
+    </fieldset>
+
+    <button id="botonasignararea" onclick="cambiarArea()">Asignar este area</button> -->
+
     <h3>Reservas pendientes</h3>
     <hr>
     <div class="tabla-contenedor">
@@ -111,6 +118,7 @@
 
     <button onclick="cargarFiltrosReserva(); cambiarSeccion('reserva')">Nueva reserva</button>
     <button onclick="salir()">Salir</button>
+
 
   <h3>Avisos</h3>
   <aside id="avisos" class="tabla-contenedor">
