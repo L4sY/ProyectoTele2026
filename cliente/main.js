@@ -24,6 +24,8 @@ var selEstMenu = document.getElementById("estadoMenu");
 var userLogin = document.getElementById("userLogin");
 var passLogin = document.getElementById("passLogin");
 
+
+
 var categorias = [];
 var modelos = [];
 var ubicaciones = [];
@@ -82,8 +84,8 @@ function cargarBienvenida(){
 }
 
 function salir(){
-    cerrarConexion();
     cambiarSeccion("login");
+    cerrarConexion();
     idGestor = null;
 }
 
@@ -102,64 +104,52 @@ function cargarDatosEnRegistro() {
       document.getElementById("nameRegistro").value = respuesta.nombre ?? "";
       document.getElementById("apellidosRegistro").value = respuesta.apellidos ?? "";
       document.getElementById("userRegistro").value = respuesta.usuario ?? "";
+      document.getElementById("passRegistro").value = "";
       document.getElementById("userRegistro").readOnly = true;
       document.getElementById("passRegistro").readOnly = true;
-    } else 
-      {
+
+    } else {
       alert("Error " + estado + " " + respuesta);
     }
   });
 }
 
 
+//revisar si toca
+botonGuardarRegistro.addEventListener('click', function () {
+  var nombre = document.getElementById("nameRegistro").value.trim();
+  var apellidos = document.getElementById("apellidosRegistro").value.trim();
+  var usuario = document.getElementById("userRegistro").value.trim();
+  var contraseña = document.getElementById("passRegistro").value;
 
-botonGuardarRegistro.addEventListener('click',function(){
-    //Guardar datos en el database y vaciar formulario
-    var nombre = document.getElementById("nameRegistro");
-    var apellidos = document.getElementById("apellidosRegistro");
-    var usuario = document.getElementById("userRegistro");
-    var contraseña = document.getElementById("passRegistro");
-
-    var usuarioActualizado = {
-        nombre: nombre.value,
-        apellidos: apellidos.value,
-        usuario: usuario.value,
-        password: contraseña.value
+  if (ultimaSeccion === 'menuPrincipal') {
+    // EDITAR: usuario y contraseña son de solo lectura, no se envían
+    if (nombre === "" || apellidos === "") {
+      if (!confirm('Hay campos en blanco, ¿seguro que quieres continuar?')) return;
     }
-    if (ultimaSeccion=='menuPrincipal'){
-      if (!nombre && !apellidos && !usuario && !password){
-        var continuar = confirm('¿Hay campos en blanco, seguro que quieres continuar?')
-      }
-      if (confimar){
-
-    rest.put("/api/gestores/"+idGestor, usuarioActualizado, function(estado, respuesta){
-
-    if (200==estado){   
-        alert(respuesta)
-
-        nombre.value = "";
-        apellidos.value = "";
-        usuario.value = "";
-        contraseña.value = "";
-
-        cargarBienvenida();
+    rest.put("/api/gestores/" + idGestor, { nombre: nombre, apellidos: apellidos }, function (estado, respuesta) {
+      if (estado === 200) {
         alert(respuesta);
+        cargarBienvenida();
         cambiarSeccion('menuPrincipal');
+      } else {
+        alert("Error " + estado + " " + respuesta);
+      }
+    });
+  } else {
+    // REGISTRAR
+    if (nombre === "" || apellidos === "" || usuario === "" || contraseña === "") {
+      return alert("Rellena todos los campos.");
     }
-    else {
-      alert(respuesta)
-    }})}
-    else{
-      
-  }}
-    else{
-      rest.post("api/gestores/",usuarioActualizado,function(estado, respuesta){
-        if (estado==201){
-          alert(respuesta);
-          cambiarSeccion('login');
-        }
-      })
-    }
+    rest.post("/api/gestores", { nombre: nombre, apellidos: apellidos, usuario: usuario, password: contraseña }, function (estado, respuesta) {
+      if (estado === 201) {
+        alert(respuesta);
+        cambiarSeccion('login');
+      } else {
+        alert("Error " + estado + " " + respuesta);
+      }
+    });
+  }
 });
 
 
@@ -303,8 +293,7 @@ function pintarTablaRecursos(lista) {
     btnEditar.textContent = "Editar";
     btnEditar.className = "btn-editar";
     btnEditar.onclick = function() { 
-      editarRecurso(r.id);
-      idRecursoEditado = r.id 
+      editarRecurso(r.id); 
     };
     
     // Botón ELIMINAR
@@ -440,32 +429,32 @@ function pintarTablaReservas(reservas) {
     
     // Columna 2: Horas estimadas
     var tdHoras = document.createElement("td");
-    tdHoras.textContent = reserva.horasestimadas || 0;
+    tdHoras.textContent = reserva.horas_estimadas || 0;
     
     // Columna 3: Fecha petición
-    var tdFechaPeticion = document.createElement("td");
-    tdFechaPeticion.textContent = reserva.fechapeticion 
-      ? new Date(reserva.fechapeticion).toLocaleString('es-ES') 
+    var tdFecha_Peticion = document.createElement("td");
+    tdFecha_Peticion.textContent = reserva.fecha_peticion 
+      ? new Date(reserva.fecha_peticion).toLocaleString('es-ES') 
       : '';
     
     // Columna 4: Fecha inicio
-    var tdFechaInicio = document.createElement("td");
-    tdFechaInicio.textContent = reserva.fechainicio 
-      ? new Date(reserva.fechainicio).toLocaleString('es-ES') 
+    var tdFecha_Inicio = document.createElement("td");
+    tdFecha_Inicio.textContent = reserva.fecha_inicio 
+      ? new Date(reserva.fecha_inicio).toLocaleString('es-ES') 
       : 'No iniciada';
     
     // Columna 5: Fecha fin
-    var tdFechaFin = document.createElement("td");
-    tdFechaFin.textContent = reserva.fechafin 
-      ? new Date(reserva.fechafin).toLocaleString('es-ES') 
+    var tdFecha_Fin = document.createElement("td");
+    tdFecha_Fin.textContent = reserva.fecha_fin 
+      ? new Date(reserva.fecha_fin).toLocaleString('es-ES') 
       : 'Pendiente';
     
     // Añadir columnas en orden correcto
     tr.appendChild(tdSanitario);
     tr.appendChild(tdHoras);
-    tr.appendChild(tdFechaPeticion);
-    tr.appendChild(tdFechaInicio);
-    tr.appendChild(tdFechaFin);
+    tr.appendChild(tdFecha_Peticion);
+    tr.appendChild(tdFecha_Inicio);
+    tr.appendChild(tdFecha_Fin);
     
     cuerpoReservas.appendChild(tr);
     total++;
@@ -532,12 +521,24 @@ function pintarTablaReservas(reservas) {
       // Columna 4: Comentario
       var tdComentario = document.createElement("td");
       tdComentario.textContent = resena.descripcion || "";
-      
+
+      //Columna 5: Informacion
+      var tdInformacion = document.createElement("td")
+      var btnInformacion = document.createElement("button")
+      btnInformacion.textContent= "Mas informacion"
+      btnInformacion.className = "Editar"
+      btnInformacion.onclick = function(){
+        notificarInformacion(resena.id, idGestor)
+      }
+
+      tdInformacion.appendChild(btnInformacion);
+
       // Añadir columnas en orden correcto
       tr.appendChild(tdFecha);
       tr.appendChild(tdSanitario);
       tr.appendChild(tdValor);
       tr.appendChild(tdComentario);
+      tr.appendChild(tdInformacion)
       
       cuerpoResenas.appendChild(tr);
     });
@@ -546,6 +547,7 @@ function pintarTablaReservas(reservas) {
 
 
 function editarRecurso(idRecurso) {
+  idRecursoEditado = null
   rest.get("/api/recursos/" + idRecurso, function(estado, recurso) {
     if (estado !== 200) {
       alert("Error: " + estado);
@@ -565,6 +567,7 @@ function editarRecurso(idRecurso) {
     
 
     cargarFichaRecurso(idRecurso);
+    idRecursoEditado = idRecurso;
     cambiarSeccion("recurso");
   });
 }
@@ -588,7 +591,8 @@ botonGuardarRecurso.addEventListener("click", function(){
     modelo: modelo,
     numSerie: numSerie.trim(),
     ubicacion: ubicacion,
-    estado: estado
+    estado: estado,
+    idGestor: idGestor
   };
 
   rest.post("/api/recursos", nuevo, function(codigo, respuesta){
@@ -671,6 +675,221 @@ document.getElementById("addRecurso").onclick = function() {
   limpiarFormularioRecurso();
   cambiarSeccion("recurso");
 };
+
+// ==========================================
+// PARTE 1: INTEGRACIÓN CON EL MINISTERIO
+// ==========================================
+
+var id_area = 11; // Código asignado a Neumología
+
+// Catálogo oficial con las 18 áreas médicas del Ministerio
+var listaAreasMedicas = [
+  { id: 1, nombre: "Alergología" },
+  { id: 2, nombre: "Anestesiología" },
+  { id: 3, nombre: "Cardiología" },
+  { id: 4, nombre: "Cirugía General" },
+  { id: 5, nombre: "Dermatología" },
+  { id: 6, nombre: "Aparato Digestivo" },
+  { id: 7, nombre: "Endocrinología" },
+  { id: 8, nombre: "Ginecología" },
+  { id: 9, nombre: "Hematología" },
+  { id: 10, nombre: "Medicina Interna" },
+  { id: 11, nombre: "Neumología" },
+  { id: 12, nombre: "Neurología" },
+  { id: 13, nombre: "Oftalmología" },
+  { id: 14, nombre: "Oncología" },
+  { id: 15, nombre: "Pediatría" },
+  { id: 16, nombre: "Psiquiatría" },
+  { id: 17, nombre: "Traumatología" },
+  { id: 18, nombre: "Urología" }
+];
+
+// ------------------------------------------
+// 1. MÉTODO POST (RECOPILAR Y ENVIAR DATOS)
+// ------------------------------------------
+function enviarDatosMinisterio() {
+  // Se vacía la lista al inicio
+  var listaDatos = [];
+
+  // Petición para obtener todos los recursos
+  rest.get("/api/recursos", function(estadoRec, recursos) {
+    if (estadoRec !== 200) {
+      alert("Error al obtener los recursos. Código: " + estadoRec);
+      return;
+    }
+
+    var recursosProcesados = 0;
+    var totalRecursos = recursos.length;
+
+    if (totalRecursos === 0) {
+      mudarDatosAlMinisterio(listaDatos);
+      return;
+    }
+
+    // Obtención de reservas por cada recurso
+    recursos.forEach(function(recurso) {
+      rest.get("/api/recursos/" + recurso.id + "/reservas", function(estadoRes, reservas) {
+        if (estadoRes === 200 && reservas.length > 0) {
+          var reservasProcesadas = 0;
+          var totalReservas = reservas.length;
+
+          // Obtención del sanitario para cada reserva
+          reservas.forEach(function(reserva) {
+            rest.get("/api/sanitarios/" + reserva.sanitario, function(estadoSan, sanitario) {
+              var categoriaNombre = nombreCategoriaDesdeModeloId(recurso.modelo);
+
+              // Creación del objeto y adición al array de datos
+              listaDatos.push({
+                nombre: (estadoSan === 200 && sanitario.nombre) ? sanitario.nombre : "Sanitario",
+                apellidos: (estadoSan === 200 && sanitario.apellidos) ? sanitario.apellidos : "Anónimo",
+                categoria: categoriaNombre || "General",
+                horas_estimadas: reserva.horas_estimadas || 0,
+                fec_pet: reserva.fecha_peticion ? reserva.fecha_peticion.split('T')[0] : "",
+                fec_ini: reserva.fecha_inicio ? reserva.fecha_inicio.split('T')[0] : "",
+                fecha_fin: reserva.fecha_fin ? reserva.fecha_fin.split('T')[0] : ""
+              });
+
+              reservasProcesadas++;
+              if (reservasProcesadas === totalReservas) {
+                recursosProcesados++;
+                if (recursosProcesados === totalRecursos) {
+                  mudarDatosAlMinisterio(listaDatos);
+                }
+              }
+            });
+          });
+        } else {
+          recursosProcesados++;
+          if (recursosProcesados === totalRecursos) {
+            mudarDatosAlMinisterio(listaDatos);
+          }
+        }
+      });
+    });
+  });
+}
+
+function mudarDatosAlMinisterio(datos) {
+  // Se crea el objeto paquete generando la fecha actual directamente en la propiedad
+  var paquete = {
+    id_area: id_area,
+    fecha: new Date().toISOString().split('T')[0],
+    datos: datos
+  };
+
+  rest.post("https://undefined.ua.es/telemedicina/api/datos", paquete, function(estado, respuesta) {
+    if (estado === 200 || estado === 201) {
+      alert("Información enviada al Ministerio correctamente.");
+      cargarRankingMinisterio();
+    } else {
+      alert("Error al enviar datos al Ministerio: " + estado);
+    }
+  });
+}
+
+// ------------------------------------------
+// 2. MÉTODO GET (OBTENER RANKING)
+// ------------------------------------------
+function cargarRankingMinisterio() {
+  // Reiniciamos los contadores de las áreas
+  var rankingCalculado = listaAreasMedicas.map(function(area) {
+    return { id: area.id, nombre: area.nombre, totalReservas: 0 };
+  });
+
+  rest.get("https://undefined.ua.es/telemedicina/api/datos", function(estado, respuesta) {
+    if (estado === 200) {
+      respuesta.forEach(function(registro) {
+        var areaExistente = rankingCalculado.find(function(item) {
+          return item.id == registro.id_area;
+        });
+
+        if (areaExistente) {
+          if (registro.datos && registro.datos.length !== undefined) {
+            areaExistente.totalReservas += registro.datos.length;
+          } else if (registro.datos) {
+            areaExistente.totalReservas += 1;
+          }
+        }
+      });
+
+      // Ordenar áreas de mayor a menor volumen de reservas
+      rankingCalculado.sort(function(a, b) {
+        return b.totalReservas - a.totalReservas;
+      });
+
+      pintarTablaRanking(rankingCalculado);
+    } else {
+      console.log("No se pudo obtener el ranking. Código: " + estado);
+    }
+  });
+}
+
+// ------------------------------------------
+// 3. MÉTODO PARA PINTAR LA TABLA EN HTML
+// ------------------------------------------
+function pintarTablaRanking(ranking) {
+  var cuerpoTabla = document.getElementById("cuerpoTRanking");
+  if (!cuerpoTabla) return;
+
+  // Vaciar la tabla antes de insertar
+  cuerpoTabla.innerHTML = "";
+
+  ranking.forEach(function(item) {
+    var tr = document.createElement("tr");
+
+    var tdNombre = document.createElement("td");
+    tdNombre.textContent = item.nombre;
+
+    var tdReservas = document.createElement("td");
+    tdReservas.textContent = item.totalReservas;
+
+    tr.appendChild(tdNombre);
+    tr.appendChild(tdReservas);
+
+    cuerpoTabla.appendChild(tr);
+  });
+}
+
+// ------------------------------------------
+// EVENTOS EN EL DOM
+// ------------------------------------------
+var btnEnviarMinisterio = document.getElementById("enviarMinisterio");
+if (btnEnviarMinisterio) {
+  btnEnviarMinisterio.onclick = enviarDatosMinisterio;
+}
+
+var btnRefrescarRanking = document.getElementById("refrescarRanking");
+if (btnRefrescarRanking) {
+  btnRefrescarRanking.onclick = cargarRankingMinisterio;
+}
+
+
+// document.getElementById("botonenviarsalud").onclick = function () {
+//     var codigopostal = document.getElementById("codigopostal").value.trim();
+//     var nombresalud = document.getElementById("nombresalud").value.trim();
+
+//     if (codigopostal === "" || nombresalud === "") {
+//         return alert("Rellena el código postal y el nombre.");
+//     }
+
+//     var nuevoArea = {
+//         Codigo_postal: codigopostal,
+//         nombre: nombresalud,
+//         gestor: idGestor,
+//         sanitario: null
+//     };
+
+//     rest.post("/api/area_salud", nuevoArea, function (estado, datos) {
+//         if (estado === 201) {
+//             alert(datos);
+//             document.getElementById("codigopostal").value = "";
+//             document.getElementById("nombresalud").value = "";
+//         } else {
+//             alert("Error " + estado + ": " + datos);
+//             console.log(datos);
+//         }
+//     });
+// };
 
 
 cargarSelect();

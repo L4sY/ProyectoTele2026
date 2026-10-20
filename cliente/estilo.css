@@ -356,6 +356,102 @@ input[readonly]{
   background: #f8fafc;
 }
 
+/* ==========================================
+   ESTILOS PARA LA SECCIÓN DEL MINISTERIO
+   ========================================== */
+
+/* Contenedor principal y encabezados */
+h2 {
+  color: #333;
+  margin-bottom: 20px;
+  font-family: Arial, sans-serif;
+  border-bottom: 2px solid #e0e0e0;
+  padding-bottom: 10px;
+}
+
+h3 {
+  color: #555;
+  margin-top: 30px;
+  margin-bottom: 15px;
+  font-family: Arial, sans-serif;
+}
+
+/* ==========================================
+   BOTONES DE ACCIÓN (btn-primary)
+   ========================================== */
+.btn-primary {
+  background-color: #0056b3; /* Azul corporativo */
+  color: #ffffff;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: bold;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-right: 10px;
+  margin-bottom: 20px;
+  transition: background-color 0.3s ease, transform 0.1s ease;
+}
+
+.btn-primary:hover {
+  background-color: #004494;
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+}
+
+/* ==========================================
+   TABLA DE RANKING (.tabla-ranking)
+   ========================================== */
+.tabla-ranking {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  background-color: #ffffff;
+  font-family: Arial, sans-serif;
+  border-radius: 5px;
+  overflow: hidden;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  border: 1px solid #dddddd;
+}
+
+.tabla-ranking th, 
+.tabla-ranking td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #dddddd;
+}
+
+/* Encabezado de la tabla */
+.tabla-ranking thead th {
+  background-color: #f8f9fa;
+  color: #333333;
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+}
+
+/* Efecto cebra para las filas (filas pares ligeramente grises) */
+.tabla-ranking tbody tr:nth-child(even) {
+  background-color: #fdfdfd;
+}
+
+/* Efecto hover al pasar el ratón por encima de una fila */
+.tabla-ranking tbody tr:hover {
+  background-color: #f1f5f9; /* Tono azulado muy suave */
+  transition: background-color 0.2s ease;
+}
+
+/* Destacar la columna "Reservas Totales" */
+.tabla-ranking td:nth-child(2),
+.tabla-ranking th:nth-child(2) {
+  text-align: center;
+  font-weight: bold;
+  color: #0056b3;
+}
+
 /* Colores de los avisos (Basado en la operación del mensaje) */
 .nuevaResenya { color: #059669 !important; font-weight: 600; } /* Verde */
 .nuevoRecurso { color: #2563eb !important; font-weight: 600; } /* Azul */

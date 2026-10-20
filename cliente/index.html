@@ -71,6 +71,23 @@
         <h3>Busqueda de recursos</h3>
         <hr>
 
+      
+        <h2>Gestión de Datos del Ministerio de Sanidad</h2>
+        <button id="enviarMinisterio" class="btn-primary">Enviar Reservas al Ministerio</button>
+        <button id="refrescarRanking" class="btn-primary">Refrescar el ranking</button>
+        <h3>Ranking de Reservas por Área Médica</h3>
+        <table class="tabla-ranking">
+          <thead>
+            <tr>
+              <th>Área Médica</th>
+              <th>Reservas Totales</th>
+            </tr>
+          </thead>
+          <tbody id="cuerpoTRanking">
+          </tbody>
+        </table>
+      
+
         <fieldset>
           <label for="categoriaMenu">Categoria:</label>
           <select name="categoriaMenu" id="categoriaMenu"></select>
@@ -220,7 +237,7 @@
   </footer>
 
   <script src="rest.js"></script>
-  <script src="mainPrueba.js"></script>
+  <script src="main.js"></script>
   <script src="../mainWS.js"></script>
 </body>
 </html>
