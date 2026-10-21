@@ -1,13 +1,13 @@
 var express = require("express");
 var jwt = require('jwt-simple');
-var clave = 'miSecretoMasOscuro'; 
+var clave = 'noTeLaPuedoDecir'; 
 
+require('dotenv').config();
 const { createClient } = require('@supabase/supabase-js');
 
-
-// Configuración de Supabase (usa marcadores falsos para el repositorio)
-const supabaseUrl = 'https://tu-proyecto.supabase.co';
-const supabaseKey = 'tu-clave-anon-publica-falsa'; 
+// Se leen de forma segura desde el archivo .env o del entorno del servidor
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 var app = express();
