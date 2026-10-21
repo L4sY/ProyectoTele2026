@@ -31,6 +31,8 @@ var modelos = [];
 var ubicaciones = [];
 var sanitarios = [];
 
+var token = null;
+var tokenCod = null;
 var idRecursoEditado = null;
 
 
@@ -58,9 +60,12 @@ function entrar(){
     rest.post("/api/gestores/login", gestor, function(estado, respuesta){
         if (estado==200){
             alert("Usuario verificado exitosamente");
-            idGestor = respuesta;
-            crearConexion(idGestor, "gestor")
+            idGestor = respuesta.id;
+            token = respuesta.token
+            tokenCod = encodeURIComponent(token)
+            // crearConexion(idGestor, "gestor")
             cargarBienvenida();
+            cargarSelect();
             cambiarSeccion("menuPrincipal");
             usuario.value = "";
             contraseña.value = "";
@@ -85,7 +90,7 @@ function cargarBienvenida(){
 
 function salir(){
     cambiarSeccion("login");
-    cerrarConexion();
+    // cerrarConexion();
     idGestor = null;
 }
 
@@ -127,7 +132,7 @@ botonGuardarRegistro.addEventListener('click', function () {
     if (nombre === "" || apellidos === "") {
       if (!confirm('Hay campos en blanco, ¿seguro que quieres continuar?')) return;
     }
-    rest.put("/api/gestores/" + idGestor, { nombre: nombre, apellidos: apellidos }, function (estado, respuesta) {
+    rest.put("/api/gestores/" + idGestor+"?token="+tokenCod, { nombre: nombre, apellidos: apellidos }, function (estado, respuesta) {
       if (estado === 200) {
         alert(respuesta);
         cargarBienvenida();
@@ -331,11 +336,12 @@ function buscarRecurso() {
 
   // encodeURIComponent codifica el valor para query string
 
-  var url = "/api/recursos"
+  var url = "/api/recursos?token="+token
     + "?categoria=" + encodeURIComponent(categoria)
     + "&modelo=" + encodeURIComponent(modelo)
     + "&ubicacion=" + encodeURIComponent(ubicacion)
-    + "&estado=" + encodeURIComponent(estado); 
+    + "&estado=" + encodeURIComponent(estado)
+    + "?token=" + tokenCod
 
   rest.get(url, function(codigo, respuesta){
     if (codigo === 200) {
@@ -349,7 +355,7 @@ function buscarRecurso() {
 // Editar recurso
 function editarRecurso(idRecurso) {
   // Cargar datos del recurso
-  rest.get("/api/recursos/" + idRecurso, function(estado, recurso) {
+  rest.get("/api/recursos/"+ idRecurso+"?token="+tokenCod, function(estado, recurso) {
     if (estado !== 200) {
       alert("Error cargando recurso: " + estado);
       return;
@@ -382,7 +388,7 @@ function editarRecurso(idRecurso) {
 function eliminarRecurso(idRecurso) {
   if (!confirm("¿Eliminar este recurso permanentemente?")) return;
   
-  rest.delete("/api/recursos/" + idRecurso, function(estado, respuesta) {
+  rest.delete("/api/recursos" + idRecurso+ "?token="+tokenCod, function(estado, respuesta) {
     if (estado === 200) {
       alert("Recurso eliminado");
       buscarRecurso();  // Refrescar tabla
@@ -394,14 +400,14 @@ function eliminarRecurso(idRecurso) {
 // Cargar reservas y reseñas
 function cargarFichaRecurso(idRecurso) {
   // Cargar reservas
-  rest.get("/api/recursos/" + idRecurso + "/reservas", function(estadoRes, reservasData) {
+  rest.get("/api/recursos/" + idRecurso + "/reservas"+"?token="+tokenCod, function(estadoRes, reservasData) {
     if (estadoRes === 200) {
       pintarTablaReservas(reservasData);
     }
   });
   
   // Cargar reseñas
-  rest.get("/api/recursos/" + idRecurso + "/resenyas", function(estadoRese, resenasData) {
+  rest.get("/api/recursos/" + idRecurso + "/resenyas"+"?token="+tokenCod, function(estadoRese, resenasData) {
     if (estadoRese === 200) {
       pintarTablaResenas(resenasData);
     }
@@ -461,7 +467,7 @@ function pintarTablaReservas(reservas) {
     
     // Cargar nombre sanitario si no está en cache local
     if (!san) {
-      rest.get("/api/sanitarios/" + reserva.sanitario, function(estado, datosSan) {
+      rest.get("/api/sanitarios/" + reserva.sanitario + "?token="+tokenCod, function(estado, datosSan) {
         if (estado === 200) {
           tdSanitario.textContent = (datosSan.nombre || "") + " " + (datosSan.apellidos || "");
           sanitarios.push(datosSan);
@@ -503,7 +509,7 @@ function pintarTablaReservas(reservas) {
       } else {
         // Carga dinámica si no está en cache
         tdSanitario.textContent = "Cargando...";
-        rest.get("/api/sanitarios/" + resena.sanitario, function(estado, datosSan) {
+        rest.get("/api/sanitarios/" + resena.sanitario+ "?token="+tokenCod, function(estado, datosSan) {
           if (estado === 200 && datosSan) {
             tdSanitario.textContent = (datosSan.nombre + " " + datosSan.apellidos).trim() || "N/A";
             // Añadir a cache local para futuras reseñas
@@ -528,7 +534,7 @@ function pintarTablaReservas(reservas) {
       btnInformacion.textContent= "Mas informacion"
       btnInformacion.className = "Editar"
       btnInformacion.onclick = function(){
-        notificarInformacion(resena.id, idGestor)
+        // notificarInformacion(resena.id, idGestor)
       }
 
       tdInformacion.appendChild(btnInformacion);
@@ -548,7 +554,7 @@ function pintarTablaReservas(reservas) {
 
 function editarRecurso(idRecurso) {
   idRecursoEditado = null
-  rest.get("/api/recursos/" + idRecurso, function(estado, recurso) {
+  rest.get("/api/recursos/" + idRecurso + "?token=" +tokenCod, function(estado, recurso) {
     if (estado !== 200) {
       alert("Error: " + estado);
       return;
@@ -595,7 +601,7 @@ botonGuardarRecurso.addEventListener("click", function(){
     idGestor: idGestor
   };
 
-  rest.post("/api/recursos", nuevo, function(codigo, respuesta){
+  rest.post("/api/recursos?token="+ tokenCod, nuevo, function(codigo, respuesta){
     if (codigo === 200 || codigo === 201) {
       alert(respuesta);
 
@@ -619,7 +625,7 @@ botonGuardarRecurso.addEventListener("click", function(){
 
 function cargarSelect() {
   // Cargar categorías
-  rest.get("/api/categorias", function(estadoCat, categoriasData) {
+  rest.get("/api/categorias?token="+tokenCod, function(estadoCat, categoriasData) {
     if (estadoCat !== 200) {
       alert("Error categorías: " + estadoCat);
       return;
@@ -627,7 +633,7 @@ function cargarSelect() {
     categorias = categoriasData;
     
     // Cargar modelos
-    rest.get("/api/modelos", function(estadoMod, modelosData) {
+    rest.get("/api/modelos?token="+tokenCod, function(estadoMod, modelosData) {
       if (estadoMod !== 200) {
         alert("Error modelos: " + estadoMod);
         return;
@@ -635,7 +641,7 @@ function cargarSelect() {
       modelos = modelosData;
       
       // Cargar ubicaciones
-      rest.get("/api/ubicaciones", function(estadoUbi, ubicacionesData) {
+      rest.get("/api/ubicaciones?token="+tokenCod, function(estadoUbi, ubicacionesData) {
         if (estadoUbi !== 200) {
           alert("Error ubicaciones: " + estadoUbi);
           return;
@@ -712,7 +718,7 @@ function enviarDatosMinisterio() {
   var listaDatos = [];
 
   // Petición para obtener todos los recursos
-  rest.get("/api/recursos", function(estadoRec, recursos) {
+  rest.get("/api/recursos?token="+tokenCod, function(estadoRec, recursos) {
     if (estadoRec !== 200) {
       alert("Error al obtener los recursos. Código: " + estadoRec);
       return;
@@ -735,7 +741,7 @@ function enviarDatosMinisterio() {
 
           // Obtención del sanitario para cada reserva
           reservas.forEach(function(reserva) {
-            rest.get("/api/sanitarios/" + reserva.sanitario, function(estadoSan, sanitario) {
+            rest.get("/api/sanitarios/" + reserva.sanitario + "?token="+tokenCod, function(estadoSan, sanitario) {
               var categoriaNombre = nombreCategoriaDesdeModeloId(recurso.modelo);
 
               // Creación del objeto y adición al array de datos
@@ -892,4 +898,3 @@ if (btnRefrescarRanking) {
 // };
 
 
-cargarSelect();

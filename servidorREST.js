@@ -91,25 +91,29 @@ app.post("/api/gestores", async (req, res) => {
 // ==========================================
 // MIDDLEWARE DE SEGURIDAD (Validación JWT)
 // ==========================================
+// Middleware de autenticación por Query Token
 app.use("/api", function (req, res, next) {
-    var token = req.headers['authorization']; 
-    
+    var token = req.query.token; // Se obtiene de la URL: ?token=XXXXXXXX
     if (!token) {
-        return res.status(401).json("No se ha encontrado token");
+        res.status(401).json("No se ha encontrado token");
+        return;
     }
 
     try {
         var contenidoToken = jwt.decode(token, clave); 
     } catch (error) {
-        return res.status(401).json("El token es incorrecto");
+        res.status(401).json("El token es incorrecto");
+        return;
     }
 
-    if (!contenidoToken || !contenidoToken.expira || !contenidoToken.usuario) { 
-        return res.status(401).json("El formato del token no es adecuado");
+    if (!contenidoToken || !contenidoToken.expira || !contenidoToken.usuario) {
+        res.status(401).json("El formato del token no es adecuado");
+        return;
     }
 
     if (contenidoToken.expira < Date.now()) {
-        return res.status(401).json("El token ha expirado");
+        res.status(401).json("El token ha expirado");
+        return;
     }
     
     next();
@@ -121,7 +125,9 @@ app.use("/api", function (req, res, next) {
 
 // GET Listas estáticas
 app.get("/api/ubicaciones", async (req, res) => {
-    const { data, error } = await supabase.from('ubicaciones').select('*');
+    const { data, error } = await supabase.
+    from('ubicaciones')
+    .select('*');
     if (error) return res.status(500).json("Error en el servidor");
     res.status(200).json(data);
 });
@@ -135,7 +141,9 @@ app.get("/api/categorias", async (req, res) => {
 });
 
 app.get("/api/modelos", async (req, res) => {
-    const { data, error } = await supabase.from('modelos').select('*');
+    const { data, error } = await supabase
+    .from('modelos')
+    .select('*');
     if (error) return res.status(500).json("Error en el servidor");
     res.status(200).json(data);
 });
