@@ -64,8 +64,8 @@ function entrar(){
             token = respuesta.token
             tokenCod = encodeURIComponent(token)
             // crearConexion(idGestor, "gestor")
-            cargarBienvenida();
             cargarSelect();
+            cargarBienvenida();
             cambiarSeccion("menuPrincipal");
             usuario.value = "";
             contraseña.value = "";
@@ -336,7 +336,7 @@ function buscarRecurso() {
 
   // encodeURIComponent codifica el valor para query string
 
-  var url = "/api/recursos?token="+token
+  var url = "/api/recursos"
     + "?categoria=" + encodeURIComponent(categoria)
     + "&modelo=" + encodeURIComponent(modelo)
     + "&ubicacion=" + encodeURIComponent(ubicacion)
