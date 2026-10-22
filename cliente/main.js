@@ -813,6 +813,3 @@ function porcentajeFinalizadasArea() {
     }
   });
 }
-
-document.getElementById("numeroID").onclick = contarReservasArea;
-document.getElementById("botonPorcentajeArea4").onclick = porcentajeFinalizadasArea;
