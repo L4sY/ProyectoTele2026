@@ -1,13 +1,13 @@
 var express = require("express");
 var jwt = require('jwt-simple');
-var clave = 'noTeLaPuedoDecir'; 
+var clave = 'miSecretoMasOscuro'; 
 
-require('dotenv').config();
 const { createClient } = require('@supabase/supabase-js');
 
-// Se leen de forma segura desde el archivo .env o del entorno del servidor
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_KEY;
+
+// Configuración de Supabase (usa marcadores falsos para el repositorio)
+const supabaseUrl = 'https://tu-proyecto.supabase.co';
+const supabaseKey = 'tu-clave-anon-publica-falsa'; 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 var app = express();
@@ -91,29 +91,25 @@ app.post("/api/gestores", async (req, res) => {
 // ==========================================
 // MIDDLEWARE DE SEGURIDAD (Validación JWT)
 // ==========================================
-// Middleware de autenticación por Query Token
 app.use("/api", function (req, res, next) {
-    var token = req.query.token; // Se obtiene de la URL: ?token=XXXXXXXX
+    var token = req.headers['authorization']; 
+    
     if (!token) {
-        res.status(401).json("No se ha encontrado token");
-        return;
+        return res.status(401).json("No se ha encontrado token");
     }
 
     try {
         var contenidoToken = jwt.decode(token, clave); 
     } catch (error) {
-        res.status(401).json("El token es incorrecto");
-        return;
+        return res.status(401).json("El token es incorrecto");
     }
 
-    if (!contenidoToken || !contenidoToken.expira || !contenidoToken.usuario) {
-        res.status(401).json("El formato del token no es adecuado");
-        return;
+    if (!contenidoToken || !contenidoToken.expira || !contenidoToken.usuario) { 
+        return res.status(401).json("El formato del token no es adecuado");
     }
 
     if (contenidoToken.expira < Date.now()) {
-        res.status(401).json("El token ha expirado");
-        return;
+        return res.status(401).json("El token ha expirado");
     }
     
     next();
@@ -123,11 +119,8 @@ app.use("/api", function (req, res, next) {
 // RUTAS PRIVADAS (SÍ necesitan token)
 // ==========================================
 
-// GET Listas estáticas
 app.get("/api/ubicaciones", async (req, res) => {
-    const { data, error } = await supabase.
-    from('ubicaciones')
-    .select('*');
+    const { data, error } = await supabase.from('ubicaciones').select('*');
     if (error) return res.status(500).json("Error en el servidor");
     res.status(200).json(data);
 });
@@ -141,14 +134,12 @@ app.get("/api/categorias", async (req, res) => {
 });
 
 app.get("/api/modelos", async (req, res) => {
-    const { data, error } = await supabase
-    .from('modelos')
-    .select('*');
+    const { data, error } = await supabase.from('modelos').select('*');
     if (error) return res.status(500).json("Error en el servidor");
     res.status(200).json(data);
 });
 
-// GET un gestor
+
 app.get("/api/gestores/:id", async (req, res) => {
     const { data, error } = await supabase
         .from('gestores')
@@ -160,7 +151,38 @@ app.get("/api/gestores/:id", async (req, res) => {
     res.status(200).json(data[0]);
 });
 
-// GET un sanitario
+
+app.put("/api/gestores/:id", async (req, res) => {
+    var idGestor = req.params.id;
+    var { nombre, apellidos, usuario, password } = req.body;
+
+    try {
+        // Comprobar que el usuario no lo usa otro gestor
+        const { data: duplicado, error: errDup } = await supabase
+            .from('gestores')
+            .select('id')
+            .eq('usuario', usuario)
+            .neq('id', idGestor);
+
+        if (errDup) return res.status(500).json("Error en el servidor");
+        if (duplicado && duplicado.length > 0) return res.status(409).json("El usuario ya está en uso");
+
+        // Actualizar
+        const { data, error } = await supabase
+            .from('gestores')
+            .update({ nombre, apellidos, usuario, password })
+            .eq('id', idGestor)
+            .select('id');
+
+        if (error) return res.status(500).json("Error en el servidor");
+        if (!data || data.length === 0) return res.status(404).json("Gestor no encontrado");
+        res.status(200).json("Datos del gestor actualizados correctamente");
+    } catch (err) {
+        res.status(500).json("Error interno del servidor");
+    }
+});
+
+
 app.get("/api/sanitarios/:id", async (req, res) => {
     const { data, error } = await supabase
         .from('sanitarios')
@@ -172,22 +194,39 @@ app.get("/api/sanitarios/:id", async (req, res) => {
     res.status(200).json(data[0]);
 });
 
-// GET Recursos (con filtros)
+
 app.get("/api/recursos", async (req, res) => {
-    var { modelo, ubicacion, estado } = req.query;
-    
-    let query = supabase.from('recursos').select('*');
+    var { categoria, modelo, ubicacion, estado } = req.query;
 
-    if (modelo) query = query.eq('modelo', modelo);
-    if (ubicacion) query = query.eq('ubicacion', ubicacion);
-    if (estado) query = query.eq('estado', estado);
+    try {
+        let query = supabase.from('recursos').select('*');
 
-    const { data, error } = await query;
-    if (error) return res.status(500).json("Error en el servidor");
-    res.status(200).json(data);
+        // Filtro por categoría: se buscan los modelos de esa categoría
+        // y se filtran los recursos cuyo modelo esté entre ellos
+        if (categoria) {
+            const { data: modelosCat, error: errModelos } = await supabase
+                .from('modelos')
+                .select('id')
+                .eq('categoria', categoria);
+
+            if (errModelos) return res.status(500).json("Error en el servidor");
+            if (!modelosCat || modelosCat.length === 0) return res.status(200).json([]);
+
+            query = query.in('modelo', modelosCat.map(m => m.id));
+        }
+
+        if (modelo) query = query.eq('modelo', modelo);
+        if (ubicacion) query = query.eq('ubicacion', ubicacion);
+        if (estado) query = query.eq('estado', estado);
+
+        const { data, error } = await query;
+        if (error) return res.status(500).json("Error en el servidor");
+        res.status(200).json(data);
+    } catch (err) {
+        res.status(500).json("Error interno del servidor");
+    }
 });
 
-// GET un recurso
 app.get("/api/recursos/:id", async (req, res) => {
     const { data, error } = await supabase
     .from('recursos')
@@ -198,7 +237,6 @@ app.get("/api/recursos/:id", async (req, res) => {
     res.status(200).json(data[0]);
 });
 
-// POST Recursos
 app.post("/api/recursos", async (req, res) => {
     var { modelo, numSerie, ubicacion, estado } = req.body;
     
@@ -219,7 +257,6 @@ app.post("/api/recursos", async (req, res) => {
     res.status(200).json("Nuevo recurso creado con id: " + data[0].id);
 });
 
-// PUT Recursos
 app.put("/api/recursos/:id", async (req, res) => {
     var idRecurso = req.params.id;
     var { modelo, numero_serie, ubicacion, estado } = req.body;
@@ -245,7 +282,6 @@ app.put("/api/recursos/:id", async (req, res) => {
     res.status(201).json("Recurso actualizado correctamente");
 });
 
-// DELETE Recursos
 app.delete("/api/recursos/:id", async (req, res) => {
     const { data, error } = await supabase
         .from('recursos')
@@ -258,24 +294,57 @@ app.delete("/api/recursos/:id", async (req, res) => {
     res.status(200).json("Recurso borrado correctamente");
 });
 
-// GET Reservas por recurso
-app.get("/api/recursos/:id/reservas", async (req, res) => {
+// Comprueba que el recurso existe
+// Devuelve true si existe; si no, responde ya con 404/500 y devuelve false
+async function recursoExiste(idRecurso, res) {
     const { data, error } = await supabase
-    .from('reservas')
-    .select('*')
-    .eq('recurso', req.params.id);
-    if (error) return res.status(500).json("Error en el servidor");
-    res.status(200).json(data);
+        .from('recursos')
+        .select('id')
+        .eq('id', idRecurso);
+
+    if (error) {
+        res.status(500).json("Error en el servidor");
+        return false;
+    }
+    if (!data || data.length === 0) {
+        res.status(404).json("Recurso no encontrado");
+        return false;
+    }
+    return true;
+}
+
+
+app.get("/api/recursos/:id/reservas", async (req, res) => {
+    try {
+        if (!(await recursoExiste(req.params.id, res))) return;
+
+        const { data, error } = await supabase
+            .from('reservas')
+            .select('*')
+            .eq('recurso', req.params.id);
+
+        if (error) return res.status(500).json("Error en el servidor");
+        res.status(200).json(data);
+    } catch (err) {
+        res.status(500).json("Error interno del servidor");
+    }
 });
 
-// GET Reseñas por recurso
+
 app.get("/api/recursos/:id/resenyas", async (req, res) => {
-    const { data, error } = await supabase
-    .from('resenyas')
-    .select('*')
-    .eq('recurso', req.params.id);
-    if (error) return res.status(500).json("Error en el servidor");
-    res.status(200).json(data);
+    try {
+        if (!(await recursoExiste(req.params.id, res))) return;
+
+        const { data, error } = await supabase
+            .from('resenyas')
+            .select('*')
+            .eq('recurso', req.params.id);
+
+        if (error) return res.status(500).json("Error en el servidor");
+        res.status(200).json(data);
+    } catch (err) {
+        res.status(500).json("Error interno del servidor");
+    }
 });
 
 app.listen(3000, () => {

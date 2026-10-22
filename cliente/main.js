@@ -129,11 +129,11 @@ botonGuardarRegistro.addEventListener('click', function () {
     }
     rest.put(urlConToken("/api/gestores/" + idGestor), { nombre: nombre, apellidos: apellidos }, function (estado, respuesta) {
       if (estado === 200) {
-        alert(respuesta);
+        alert(respuesta.mensaje);
         cargarBienvenida();
         cambiarSeccion('menuPrincipal');
       } else {
-        alert("Error " + estado + " " + respuesta);
+        alert("Error " + estado + " " + respuesta.mensaje);
       }
     });
   } else {
@@ -329,8 +329,8 @@ function editarRecurso(idRecurso) {
     }
     
     document.getElementById("nSerieRecurso").value = recurso.numero_serie || recurso.numSerie || "";
-    selectUbicacion.value = recurso.ubicacion || "";
-    selectEstado.value = recurso.estado || "";
+    selectUbicacion.value = recurso.ubicacion ?? "";
+    selectEstado.value = recurso.estado ?? "";
     
     var modeloInfo = modelos.find(m => m.id == recurso.modelo);
     if (modeloInfo) {
@@ -500,6 +500,21 @@ botonGuardarRecurso.addEventListener("click", function(){
   if (modelo === "" || ubicacion === "" || estado === "" || numSerie.trim() === "") {
     return alert("Faltan datos (modelo, ubicación, estado o nº serie).");
   }
+  
+    if (idRecursoEditado) {
+    var editado = { modelo: modelo, numero_serie: numSerie.trim(), ubicacion: ubicacion, estado: estado };
+    rest.put(urlConToken("/api/recursos/" + idRecursoEditado), editado, function(codigo, respuesta){
+      if (codigo === 200 || codigo === 201) {
+        alert(respuesta);
+        limpiarFormularioRecurso();
+        cambiarSeccion("menuPrincipal");
+        buscarRecurso();
+      } else {
+        alert("Error " + codigo + " " + respuesta);
+      }
+    });
+    return;
+  }
 
   var nuevo = {
     categoria: categoria || null,
@@ -628,7 +643,7 @@ function enviarDatosMinisterio() {
                 horas_estimadas: reserva.horas_estimadas || 0,
                 fec_pet: reserva.fecha_peticion ? reserva.fecha_peticion.split('T')[0] : "",
                 fec_ini: reserva.fecha_inicio ? reserva.fecha_inicio.split('T')[0] : "",
-                fecha_fin: reserva.fecha_fin ? reserva.fecha_fin.split('T')[0] : ""
+                fec_fin: reserva.fecha_fin ? reserva.fecha_fin.split('T')[0] : ""
               });
 
               reservasProcesadas++;
