@@ -92,7 +92,7 @@ app.post("/api/gestores", async (req, res) => {
 // MIDDLEWARE DE SEGURIDAD (Validación JWT)
 // ==========================================
 app.use("/api", function (req, res, next) {
-    var token = req.headers['authorization']; 
+    var token = req.query.token || req.headers['authorization'];
     
     if (!token) {
         return res.status(401).json("No se ha encontrado token");
