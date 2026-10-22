@@ -783,13 +783,15 @@ function contarReservasArea() {
 
 function porcentajeFinalizadasArea() {
 
+  var idArea = document.getElementById("numeroIDArea").value;
+
   rest.get("https://undefined.ua.es/telemedicina/api/datos", function(estado, respuesta) {
     if (estado === 200) {
       var total = 0;
       var finalizadas = 0;
 
       for (var i = 0; i < respuesta.length; i++) {
-        if (respuesta[i].id_area == 4) {
+        if (respuesta[i].id_area == idArea) {
           var datos = respuesta[i].datos;
 
           for (var j = 0; j < datos.length; j++) {
