@@ -756,7 +756,7 @@ if (btnRefrescarRanking) {
 
 
 function contarReservasArea() {
-  var idArea = document.getElementById("idAreaReservas").value;
+  var idArea = document.getElementById("numeroIDArea").value;
 
   if (idArea === "") {
     alert("Introduce el número del área");
