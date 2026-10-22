@@ -808,7 +808,7 @@ function porcentajeFinalizadasArea() {
         alert("El área 4 no tiene reservas")
       } else {
         var porcentaje = finalizadas * 100 / total;
-        alert("Área "+idArea +"("+listaAreasMedicas[idArea-1]+")" + porcentaje + "% finalizadas")
+        alert("Área "+idArea +"("+listaAreasMedicas[idArea-1].nombre+")" + porcentaje + "% finalizadas")
       }
     } else {
       alert("Error al consultar el ministerio: " + estado);
