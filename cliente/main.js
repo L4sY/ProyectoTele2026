@@ -773,7 +773,7 @@ function contarReservasArea() {
         }
       }
 
-      alert("Reservas totales del área " + idArea + ": " + total)
+      alert("Reservas totales del área " + idArea + "("+listaAreasMedicas[idArea-1].nombre+"): " + total)
     } else {
       alert("Error al consultar el ministerio: " + estado);
     }
