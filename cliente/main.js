@@ -690,25 +690,6 @@ function mudarDatosAlMinisterio(datos) {
   });
 }
 
-function buscarReservasArea(){
-  var id_area = null;
-  id_area = document.getElementById("numeroIDArea");
-  var contadorArea = 0;
-  rest.get("https://undefined.ua.es/telemedicina/api/datos", function(estado, respuesta){
-    if (estado === 200){
-      respuesta.forEach(function(registro){
-        if (registro.id_area == id_area){
-          contadorArea++;
-        }
-
-      })
-      alert("El numero total de reservar del area "+id_area+" es "+contadorArea)
-    }
-
-  })
-
-}
-
 function cargarRankingMinisterio() {
   var rankingCalculado = listaAreasMedicas.map(function(area) {
     return { id: area.id, nombre: area.nombre, totalReservas: 0 };
@@ -772,3 +753,66 @@ var btnRefrescarRanking = document.getElementById("refrescarRanking");
 if (btnRefrescarRanking) {
   btnRefrescarRanking.onclick = cargarRankingMinisterio;
 }
+
+
+function contarReservasArea() {
+  var idArea = document.getElementById("idAreaReservas").value;
+
+  if (idArea === "") {
+    alert("Introduce el número del área");
+    return;
+  }
+
+  rest.get("https://undefined.ua.es/telemedicina/api/datos", function(estado, respuesta) {
+    if (estado === 200) {
+      var total = 0;
+
+      for (var i = 0; i < respuesta.length; i++) {
+        if (respuesta[i].id_area == idArea) {
+          total = total + respuesta[i].datos.length;
+        }
+      }
+
+      alert("Reservas totales del área " + idArea + ": " + total)
+    } else {
+      alert("Error al consultar el ministerio: " + estado);
+    }
+  });
+}
+
+
+function porcentajeFinalizadasArea() {
+
+  rest.get("https://undefined.ua.es/telemedicina/api/datos", function(estado, respuesta) {
+    if (estado === 200) {
+      var total = 0;
+      var finalizadas = 0;
+
+      for (var i = 0; i < respuesta.length; i++) {
+        if (respuesta[i].id_area == 4) {
+          var datos = respuesta[i].datos;
+
+          for (var j = 0; j < datos.length; j++) {
+            total = total + 1;
+
+            if (datos[j].fecha_fin != "") {
+              finalizadas = finalizadas + 1;
+            }
+          }
+        }
+      }
+
+      if (total === 0) {
+        alert("El área 4 no tiene reservas")
+      } else {
+        var porcentaje = finalizadas * 100 / total;
+        alert("Área 4: " + porcentaje + "% finalizadas")
+      }
+    } else {
+      alert("Error al consultar el ministerio: " + estado);
+    }
+  });
+}
+
+document.getElementById("numeroID").onclick = contarReservasArea;
+document.getElementById("botonPorcentajeArea4").onclick = porcentajeFinalizadasArea;
