@@ -690,6 +690,25 @@ function mudarDatosAlMinisterio(datos) {
   });
 }
 
+function buscarReservasArea(){
+  var id_area = null;
+  id_area = document.getElementById("numeroIDArea");
+  var contadorArea = 0;
+  rest.get("https://undefined.ua.es/telemedicina/api/datos", function(estado, respuesta){
+    if (estado === 200){
+      respuesta.forEach(function(registro){
+        if (registro.id_area == id_area){
+          contadorArea++;
+        }
+
+      })
+      alert("El numero total de reservar del area "+id_area+" es "+contadorArea)
+    }
+
+  })
+
+}
+
 function cargarRankingMinisterio() {
   var rankingCalculado = listaAreasMedicas.map(function(area) {
     return { id: area.id, nombre: area.nombre, totalReservas: 0 };
