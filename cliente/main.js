@@ -96,6 +96,10 @@ function salir(){
 }
 
 function cargarRegistro() {
+    document.getElementById("nameRegistro").value = ""
+    document.getElementById("apellidosRegistro").value = ""
+    document.getElementById("userRegistro").value = ""
+    document.getElementById("passRegistro").value = "";
     document.getElementById("userRegistro").readOnly = false;
     document.getElementById("passRegistro").readOnly = false;
 }
@@ -129,11 +133,11 @@ botonGuardarRegistro.addEventListener('click', function () {
     }
     rest.put(urlConToken("/api/gestores/" + idGestor), { nombre: nombre, apellidos: apellidos }, function (estado, respuesta) {
       if (estado === 200) {
-        alert(respuesta.mensaje);
+        alert(respuesta);
         cargarBienvenida();
         cambiarSeccion('menuPrincipal');
       } else {
-        alert("Error " + estado + " " + respuesta.mensaje);
+        alert("Error " + estado + " " + respuesta);
       }
     });
   } else {
@@ -172,6 +176,9 @@ function limpiarFormularioRecurso() {
   selectEstado.value = "";
   idRecursoEditado = null;
 }
+  document.getElementById("cuerpoTReservas").innerHTML = "";
+  document.getElementById("totalReservas").textContent = "";
+  document.getElementById("cuerpoTResenas").innerHTML = "";
 
 var cuerpoTRecursos = document.getElementById("cuerpoTRecursos");
 var contadorRecursos = document.getElementById("contadorRecursos");
@@ -500,7 +507,7 @@ botonGuardarRecurso.addEventListener("click", function(){
   if (modelo === "" || ubicacion === "" || estado === "" || numSerie.trim() === "") {
     return alert("Faltan datos (modelo, ubicación, estado o nº serie).");
   }
-  
+
     if (idRecursoEditado) {
     var editado = { modelo: modelo, numero_serie: numSerie.trim(), ubicacion: ubicacion, estado: estado };
     rest.put(urlConToken("/api/recursos/" + idRecursoEditado), editado, function(codigo, respuesta){
