@@ -806,7 +806,7 @@ function porcentajeFinalizadasArea() {
         alert("El área 4 no tiene reservas")
       } else {
         var porcentaje = finalizadas * 100 / total;
-        alert("Área 4: " + porcentaje + "% finalizadas")
+        alert("Área 4 (Cirugía general): " + porcentaje + "% finalizadas")
       }
     } else {
       alert("Error al consultar el ministerio: " + estado);
